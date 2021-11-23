@@ -1,0 +1,90 @@
+i=0;
+	//printf("BMPFileHeader:%d BMPBitmapHeader=%d %d",sizeof(BMPFileHeader),sizeof(BMPBitmapHeader),i+=12);getch();
+	textcolor(WHITE);
+	initgraph(0x111);Mouse_Install(MainGraphicArea.width,MainGraphicArea.hight);
+	image loadImage;
+	printf("Load=%d",load(MyFile ,sizeof(MyFile),318,239, &loadImage) );getch();
+	printf("Load=%d",DrawImage(MainGraphicArea,&loadImage ,Draw_Translucent ,0 ,0,0,0,318,239));
+	
+	/*BITMAP BMP1;
+	LoadDataToBitmap(MyFile,&BMP1);
+	DrawImage(MainGraphicArea ,&BMP1 ,POINT(0 ,0) ,SIZE(BMP1.BitmapHear.Width ,BMP1.BitmapHear.Hight)); 
+	while(1);*/
+	
+	InitWindowManagment();
+
+	DumpMAM(RootMAM);getch();
+
+	FormControl NewForm;	  
+	InitForm(&NewForm ,POINT(50,100) ,SIZE(150,150));
+	DumpMAM(RootMAM);getch();
+	printf("\nMain:NewForm.Control->CGraphicArea.Buffer=%p",NewForm.Control->CGraphicArea.Buffer);getch();
+	CreatForm(&NewForm );
+
+	//GraphicArea new1;
+	//new1.BitsPerPixel=MainGraphicArea.BitsPerPixel;
+	//new1.BytePerPixel=MainGraphicArea.BytePerPixel;
+	//new1.hight=MainGraphicArea.hight;
+	//new1.width =500/*MainGraphicArea.width*/;
+	//new1.Buffer =kmalloc(new1.hight*new1.width*2,"Image Pros" );
+	//blend(new1 ,Color ,Color2 ,10,10,200,150,false);
+
+	//Point PS,PD;
+	//PS.X=10;PS.Y=10;
+	//PD.X=0;PD.Y=0;
+	//
+	//Size s;
+	//s.Width=200;	
+	//s.Hight=150;	
+	//clrscr();
+	//printf("\nDraw to new");
+	//getch();
+	//WindowGraphicMemoryCopy(MainGraphicArea ,PD ,new1 ,PS ,s);
+	//getch();
+	//clrscr();
+	blend(MainGraphicArea,Color ,Color2 ,0,0,MainGraphicArea.width,MainGraphicArea.hight,true);
+
+	  //__asm__ __volatile__ ("cld							\n"
+			//				"rep							\n"
+			//				"movsw							  "
+			//				:
+			//				: "S" (MainGraphicArea.Buffer), "D" ((void*)(MainGraphicArea.Buffer+200)), "c" (100)
+			//			//    : "ecx", "esi", "edi"
+			//				);
+
+//memcpy( (void*)(MainGraphicArea.Buffer+1280+500) ,MainGraphicArea.Buffer,500);
+//getch();
+	//GraphicClipMove(MainGraphicArea ,400,300,0,0,200,150);
+	//blend (Color ,Color2 ,200,150,50,50,true);
+	
+	//getch();	
+	//while(1);
+	//GraphicClipClear(MainGraphicArea ,0 ,0 ,MainGraphicArea.width ,MainGraphicArea.hight ,(ColorRGB){152,78,0} );
+	//printf("\nDrawRect=%d",DrawRect(&Color, Draw_Normal,100,100,200,200,10));	
+	//DrawOval(&Color, Draw_Normal,200,200, 150,150,5,0);
+	//col+=0xF;
+	//getch();
+	//}
+	//while(1);
+	//
+	////RGBDrawPixel(&for_color ,Draw_Normal ,22,100);
+	//	
+	//getch();
+	//TextMode(TEXT_80x25);
+	//
+	////drawstring(100,100,"Thanks God...");
+	//getch();	 
+	//printf("_cursor_x=%d _cursor_y=%d",_cursor_x,_cursor_y);getch();	
+	//printf("_cursor_x=%d _cursor_y=%d",_cursor_x,_cursor_y);getch();
+	//clrscr();
+	//printf("_cursor_x=%d _cursor_y=%d",_cursor_x,_cursor_y);getch();
+	////pciScanBus();
+
+	//
+	//printf("Finish Scan...");getch();
+	//getch();
+	//
+	
+	Console();	
+	TextMode(TEXT_80x25);
+	printtime();

@@ -1,0 +1,188 @@
+/* bkerndev - Bran's Kernel Development Tutorial
+*  By:   Brandon F. (friesenb@gmail.com)
+*  Desc: Keyboard driver
+*
+*  Notes: No warranty expressed or implied. Use at own risk. */
+#include <keyboard.h>
+#include <system.h> 
+#include <conio.h>
+#include <io.h>
+#include <stdio.h>
+
+
+static bool _ctrl_pressed=false, _alt_pressed=false, _del_pressed=false , _rshift_pressed=false ,_lshift_pressed=false;
+static bool _CapsLock=false,_ScrollLock=false,_NumLock=false,_LedChange=true;
+unsigned short* s_scanTable;
+
+/* s_scanTableNoShift means US Keyboard Layout. This is a scancode table
+*  used to layout a standard US keyboard. I have left some
+*  comments in to give you an idea of what key is what, even
+*  though I set it's array index to 0. You can change that to
+*  whatever you want using a macro, if you wish! */
+unsigned short s_scanTableNoShift[] ={
+    KEY_UNKNOWN, ASCII_ESC, '1', '2',   /* 0x00 - 0x03 */
+    '3', '4', '5', '6',                 /* 0x04 - 0x07 */
+    '7', '8', '9', '0',                 /* 0x08 - 0x0B */
+    '-', '=', ASCII_BS, '\t',           /* 0x0C - 0x0F */
+    'q', 'w', 'e', 'r',                 /* 0x10 - 0x13 */
+    't', 'y', 'u', 'i',                 /* 0x14 - 0x17 */
+    'o', 'p', '[', ']',                 /* 0x18 - 0x1B */
+    '\n', KEY_LCTRL, 'a', 's',          /* 0x1C - 0x1F */
+    'd', 'f', 'g', 'h',                 /* 0x20 - 0x23 */
+    'j', 'k', 'l', ';',                 /* 0x24 - 0x27 */
+    '\'', '`', KEY_LSHIFT, '\\',        /* 0x28 - 0x2B */
+    'z', 'x', 'c', 'v',                 /* 0x2C - 0x2F */
+    'b', 'n', 'm', ',',                 /* 0x30 - 0x33 */
+    '.', '/', KEY_RSHIFT, KEY_PRINTSCRN, /* 0x34 - 0x37 */
+    KEY_LALT, ' ', KEY_CAPSLOCK, KEY_F1, /* 0x38 - 0x3B */
+    KEY_F2, KEY_F3, KEY_F4, KEY_F5,     /* 0x3C - 0x3F */
+    KEY_F6, KEY_F7, KEY_F8, KEY_F9,     /* 0x40 - 0x43 */
+    KEY_F10, KEY_NUMLOCK, KEY_SCRLOCK, KEY_KPHOME,  /* 0x44 - 0x47 */
+    KEY_KPUP, KEY_KPPGUP, KEY_KPMINUS, KEY_KPLEFT,  /* 0x48 - 0x4B */
+    KEY_KPCENTER, KEY_KPRIGHT, KEY_KPPLUS, KEY_KPEND,  /* 0x4C - 0x4F */
+    KEY_KPDOWN, KEY_KPPGDN, KEY_KPINSERT, KEY_KPDEL,  /* 0x50 - 0x53 */
+    KEY_SYSREQ, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,  /* 0x54 - 0x57 */
+};
+#define SCAN_TABLE_SIZE (sizeof(s_scanTableNoShift) / sizeof(Keycode))
+
+/*
+ * Translate from scan code to key code, when shift *is* pressed.
+ * Keep this in sync with the unshifted table above!
+ * They must be the same size.
+ */
+unsigned short  s_scanTableWithShift[] = {
+    KEY_UNKNOWN, ASCII_ESC, '!', '@',   /* 0x00 - 0x03 */
+    '#', '$', '%', '^',                 /* 0x04 - 0x07 */
+    '&', '*', '(', ')',                 /* 0x08 - 0x0B */
+    '_', '+', ASCII_BS, '\t',           /* 0x0C - 0x0F */
+    'Q', 'W', 'E', 'R',                 /* 0x10 - 0x13 */
+    'T', 'Y', 'U', 'I',                 /* 0x14 - 0x17 */
+    'O', 'P', '{', '}',                 /* 0x18 - 0x1B */
+    '\n', KEY_LCTRL, 'A', 'S',          /* 0x1C - 0x1F */
+    'D', 'F', 'G', 'H',                 /* 0x20 - 0x23 */
+    'J', 'K', 'L', ':',                 /* 0x24 - 0x27 */
+    '"', '~', KEY_LSHIFT, '|',          /* 0x28 - 0x2B */
+    'Z', 'X', 'C', 'V',                 /* 0x2C - 0x2F */
+    'B', 'N', 'M', '<',                 /* 0x30 - 0x33 */
+    '>', '?', KEY_RSHIFT, KEY_PRINTSCRN, /* 0x34 - 0x37 */
+    KEY_LALT, ' ', KEY_CAPSLOCK, KEY_F1, /* 0x38 - 0x3B */
+    KEY_F2, KEY_F3, KEY_F4, KEY_F5,     /* 0x3C - 0x3F */
+    KEY_F6, KEY_F7, KEY_F8, KEY_F9,     /* 0x40 - 0x43 */
+    KEY_F10, KEY_NUMLOCK, KEY_SCRLOCK, KEY_KPHOME,  /* 0x44 - 0x47 */
+    KEY_KPUP, KEY_KPPGUP, KEY_KPMINUS, KEY_KPLEFT,  /* 0x48 - 0x4B */
+    KEY_KPCENTER, KEY_KPRIGHT, KEY_KPPLUS, KEY_KPEND,  /* 0x4C - 0x4F */
+    KEY_KPDOWN, KEY_KPPGDN, KEY_KPINSERT, KEY_KPDEL,  /* 0x50 - 0x53 */
+    KEY_SYSREQ, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,  /* 0x54 - 0x57 */
+};
+/* Handles the keyboard interrupt */
+void keyboard_handler(struct regs *r)
+{
+    unsigned char scancode, k;
+	
+	//Check If Data There is
+	if((inportb(PORT_KEYCMD) & KB_OUTPUT_FULL)!=0) 
+	{
+		IO_Delay();
+    /* Read from the keyboard's data buffer */
+    scancode = inportb(PORT_KEYDATA);
+	}else return;//No Data	
+
+    /* If the top bit of the byte we read from the keyboard is
+    *  set, that means that a key has just been released */
+
+	
+    if (scancode & KB_KEY_RELEASE)
+    {
+		k = scancode & 0x7F;
+        /* You can use this one to see if the user released the
+        *  shift, alt, or control keys... */		
+	   
+		if (k==sCtrl)	_ctrl_pressed = false;  
+		if (k==sAlt)	_alt_pressed = false;  
+		if (k==sDelete)	_del_pressed = false;
+		if (k==sRShift)	_rshift_pressed = false;
+		if (k==sLShift)	_lshift_pressed = false;
+
+
+		if (k==sNumLock)	{_NumLock =NOT(_NumLock);_LedChange=true;}
+		if (k==sCapsLock)	{_CapsLock =NOT(_CapsLock);_LedChange=true;}
+		if (k==sScrollLock)	{_ScrollLock =NOT(_ScrollLock);_LedChange=true;}
+
+		/* Effecting Some Key Release To Os */
+		if(_LedChange==true){ KeyBoardLight(_ScrollLock,_NumLock,_CapsLock);	_LedChange=false;}
+		if(_lshift_pressed==false && _rshift_pressed==false )	//Scan   Table Reffer To Normal ScanTable
+			s_scanTable=s_scanTableNoShift;
+    }
+    else
+    {
+        /* Here, a key was just pressed. Please note that if you
+        *  hold a key down, you will get repeated key press
+        *  interrupts. */
+
+        /* Just to show you how this works, we simply translate
+        *  the keyboard scancode into an ASCII value, and then
+        *  display it to the screen. You can get creative and
+        *  use some flags to see if a shift is pressed and use a
+        *  different layout, or you can add another 128 entries
+        *  to the above layout to correspond to 'shift' being
+        *  held. If shift is held using the larger lookup table,
+        *  you would add 128 to the scancode when you look for it */
+
+		if (scancode==sCtrl)	_ctrl_pressed = true;		  
+		if (scancode==sAlt)		_alt_pressed = true;		
+		if (scancode==sDelete)	_del_pressed = true;
+		if (scancode==sRShift)	_rshift_pressed = true;
+		if (scancode==sLShift)	_lshift_pressed = true;
+			
+		 /* Effecting Some Key Press To Os */
+		if(_lshift_pressed || _rshift_pressed )	//Scan   Table Reffer To Shift ScanTable
+			s_scanTable=s_scanTableWithShift ;
+		if ((_ctrl_pressed) && (_alt_pressed) && (_del_pressed)) {
+			outportb (PORT_8259_M, EOI);
+			kprintf("User Press ALT+CTRL+DEL To Reboot!"); 
+			reboot(); 
+			};
+		//printf("\nKey Oressed:%d",scancode);
+		if (_kbcnt < _KEYBUF_SIZE) {
+			_keybuf[_kbtail++] = scancode;
+			if (_kbtail == _KEYBUF_SIZE) _kbtail =  0;
+			_kbcnt++;
+			};  			
+        putch(s_scanTable[scancode]);		
+    }	
+}
+
+/// <summary>		
+	///This Function Is Wait Until Keyboard Send Rigister To Ready.		
+	///After This Function Can Send Data To Keyboard Becuse Is Ready.
+/// </summary>
+void WaitKeyBoardIsSendReady(void)
+{    
+    while ((inportb(PORT_KEYCMD) & 2)!= 0);
+    return;
+}
+
+void KeyBoardLight(bool ScrollLock ,bool NumLock ,bool CapsLock )
+{
+	unsigned char Data=(ScrollLock==true ? 0x01 : 0x00) | (NumLock==true ? 0x02 : 0x00) | (CapsLock==true ? 0x04 : 0x00);//Bit0 is Scroll lock, Bit1 is Num lock, and Bit2 is Caps lock.
+	WaitKeyBoardIsSendReady();
+	outportb(PORT_KEYDATA ,0xED );//Important: You don't write to the control register itself except for in special cases.
+	outportb(PORT_KEYDATA ,Data );
+	//printf("Data=%d",Data);getch();
+}
+
+
+/* Installs the keyboard handler into IRQ1 */
+void Keyboard_Install()
+{
+    irq_install_handler(1, keyboard_handler);
+	s_scanTable=s_scanTableNoShift;
+	kprintf("KeyBoard Driver Is Install\t\t\t\t[ OK ]");
+	 //This 4line Code Is Important For Enable Mouse
+	//Becuse If This Code Not Presedent ,Enable Mouse Is Hanging
+	/*WaitKeyBoardIsSendReady();
+    outportb(PORT_KEYCMD, KEYCMD_WRITE_MODE);
+    WaitKeyBoardIsSendReady();
+    outportb(PORT_KEYDATA, KBC_MODE);*/
+}
+

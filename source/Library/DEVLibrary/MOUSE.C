@@ -1,0 +1,358 @@
+#include <mouse.h>
+#include <graphics.h>
+#include <mmu.h>
+#include <math.h>
+#include <system.h>
+#include <stdio.h>
+#include <conio.h>
+#include <io.h>
+//#define MOUSE_DEBUG
+
+struct MouseDataRecive *MouseBuffer;
+short CountMouseDataRecive=-1;
+static struct MouseParameters MouseInfo,MouseOldInfo;
+unsigned short WindowWidth,WindowHight;//Mouse Can Move In This Window
+static unsigned short MouseSize;
+static GraphicArea BouseBackgroundBMP;
+static GraphicArea MouseBMP;
+static short OrginalMouseBMP[16][16] ={
+	{0,0,2,2,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,2,1,3,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,2,1,1,3,0,0,0,0,0,0,0,0,0,0},
+	{0,0,2,1,1,1,3,0,0,0,0,0,0,0,0,0},
+	{0,0,2,1,1,1,1,3,0,0,0,0,0,0,0,0},
+	{0,0,2,1,1,1,1,1,3,0,0,0,0,0,0,0},
+	{0,0,2,1,1,1,1,1,1,3,0,0,0,0,0,0},
+	{0,0,2,1,1,1,1,1,1,1,3,0,0,0,0,0},
+	{0,0,2,1,1,1,1,1,1,1,1,3,0,0,0,0},
+	{0,0,2,1,1,1,1,1,3,0,0,0,0,0,0,0},
+	{0,0,2,1,1,2,1,1,3,0,0,0,0,0,0,0},
+	{0,0,2,1,3,0,2,1,1,3,0,0,0,0,0,0},
+	{0,0,0,0,0,0,2,1,1,3,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,2,1,1,3,0,0,0,0,0},
+	{0,0,0,0,0,0,0,2,1,1,3,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,0}, 
+};
+
+
+static void DrawMouse()
+{	
+	unsigned short i,j;
+	if(IsGraphic==true)
+	{		
+		//1) Past Background To Old Place
+		if(MouseInfo.Hiden==false)WindowGraphicMemoryCopy(MainGraphicArea ,POINT(MouseOldInfo.X,MouseOldInfo.Y) ,BouseBackgroundBMP ,POINT(0,0) ,SIZE(MouseSize,MouseSize) );	
+		//gotoxy(1,1);printf("(%d,%d)",MouseOldInfo.X,MouseOldInfo.Y);		
+		//2) Copy New Place Of Mouse To MouseBackground
+		WindowGraphicMemoryCopy(BouseBackgroundBMP ,POINT(0,0) ,MainGraphicArea ,POINT(MouseInfo.X,MouseInfo.Y) ,SIZE(MouseSize,MouseSize));
+		//gotoxy(1,15);printf("(%d,%d)",MouseInfo.X,MouseInfo.Y);		
+		//3) Draw Mouse		
+		if(MouseInfo.Hiden==false)
+		{
+			for(i=0;i<MouseSize;i++)
+			 for(j=0;j<MouseSize;j++)
+			  if(OrginalMouseBMP[i][j]==1)
+				putpixel(MainGraphicArea ,i+MouseInfo.X ,j+MouseInfo.Y ,COLOR_WHITE ,Draw_Normal ); 		
+			  else if(OrginalMouseBMP[i][j]==2)
+				  putpixel(MainGraphicArea ,i+MouseInfo.X ,j+MouseInfo.Y ,COLOR_BLACK ,Draw_Normal ); 		
+				else if(OrginalMouseBMP[i][j]==3)
+				  putpixel(MainGraphicArea ,i+MouseInfo.X ,j+MouseInfo.Y ,COLOR_DARKGRAY ,Draw_Normal ); 		
+		}
+		MouseOldInfo=MouseInfo;		
+	}	
+}
+
+void HideMouse()
+{
+	MouseInfo.Hiden=true;
+	WindowGraphicMemoryCopy(MainGraphicArea ,POINT(MouseOldInfo.X,MouseOldInfo.Y) ,BouseBackgroundBMP ,POINT(0,0) ,SIZE(MouseSize,MouseSize) );	
+}
+
+void ShowMouse()
+{
+	unsigned short i,j;
+	MouseInfo.Hiden=false;
+	ColorRGB MouseColor;
+	for(i=0;i<MouseSize;i++)
+	 for(j=0;j<MouseSize;j++)
+	  if(OrginalMouseBMP[i][j]==1)
+		putpixel(MainGraphicArea ,i+MouseInfo.X ,j+MouseInfo.Y ,COLOR_WHITE ,Draw_Normal ); 		
+	  else if(OrginalMouseBMP[i][j]==2)
+    	putpixel(MainGraphicArea ,i+MouseInfo.X ,j+MouseInfo.Y ,COLOR_BLACK ,Draw_Normal ); 		
+	  else if(OrginalMouseBMP[i][j]==3)
+	    putpixel(MainGraphicArea ,i+MouseInfo.X ,j+MouseInfo.Y ,COLOR_DARKGRAY ,Draw_Normal ); 		
+}
+
+bool IsMouseHiden()
+{
+	return MouseInfo.Hiden;
+}
+
+bool IsMouseShow()
+{
+	return MouseInfo.Hiden;
+}
+void UpdateMouseBackGround(unsigned int X ,unsigned int Y)
+{
+	//printf("UU");
+	if((MouseInfo.X <=X && X<MouseInfo.X+MouseSize) && (MouseInfo.Y <=Y && Y<MouseInfo.Y+MouseSize))
+	{
+		//Mouse_Update_func=NULL;
+		putpixel(BouseBackgroundBMP ,X-MouseInfo.X ,Y-MouseInfo.Y ,ColorNOToColorRGB(getpixel(BouseBackgroundBMP ,X ,Y)) ,Draw_Normal );
+		//Mouse_Update_func=UpdateMouseBackGround;
+		//DrawMouse();
+	//	printf("SS");
+	}
+	
+}
+
+void MouseHandler(struct regs *r)
+{	
+	bool reEnable = false;
+	if (IsInterruptsEnabled()) 
+	{		
+		disable();
+		reEnable = true;
+    } 
+	int data;
+	unsigned char WhichByte,WhichBuffer;
+    outp8(PIC1_OCW2, 0x64);   
+    outp8(PIC0_OCW2, 0x62);   
+    data = inp8(PORT_KEYDATA);
+	if(CountMouseDataRecive==-1)
+	{
+		if(data==0xFA) 
+			CountMouseDataRecive=0;
+		return;
+	}
+	WhichByte= CountMouseDataRecive % 3;
+	WhichBuffer= ceill(CountMouseDataRecive / 3);
+	switch(WhichByte)
+	{
+		case 0:
+			MouseBuffer[WhichBuffer].Byte0= data ;
+			break;
+		case 1:
+			MouseBuffer[WhichBuffer].Byte1= data ;
+			break;
+		case 2:
+			MouseBuffer[WhichBuffer].Byte2= data ;
+			break;
+	}
+	#ifdef MOUSE_DEBUG
+		printf("\nMouse data=%2X",data);
+		if(CountMouseDataRecive%3==0)
+			printf("\nMouse Buffer[%d]=%2X ,%2X ,%2X ",WhichBuffer,MouseBuffer[WhichBuffer].Byte0 ,MouseBuffer[WhichBuffer].Byte1 ,MouseBuffer[WhichBuffer].Byte2);
+	#endif
+	CountMouseDataRecive++;
+	if(CountMouseDataRecive==MOUSE_BUFFER_SIZE*3)CountMouseDataRecive=0;
+
+	if(CountMouseDataRecive%3==0)
+	{ 
+		signed short Xp,Yp;
+
+		//For Button
+		MouseInfo.Button=(enum MouseBTNEnum )(MouseBuffer[WhichBuffer].Byte0 & 0x07);
+
+		//For Mouse Location
+		MouseInfo.DX=((MouseBuffer[WhichBuffer].Byte1 & 0x80)==0x80 ? -(0xFF-MouseBuffer[WhichBuffer].Byte1+1) : MouseBuffer[WhichBuffer].Byte1 );
+		MouseInfo.DY=((MouseBuffer[WhichBuffer].Byte2 & 0x80)==0x80 ? -(0xFF-MouseBuffer[WhichBuffer].Byte2+1) : MouseBuffer[WhichBuffer].Byte2 );		
+		
+		Xp=MouseInfo.X+MouseInfo.DX;		
+		if (Xp<0)
+			MouseInfo.X=0;
+		else if(Xp>WindowWidth )
+			MouseInfo.X=WindowWidth ;
+		else
+			MouseInfo.X=Xp;
+
+		Yp=MouseInfo.Y-MouseInfo.DY;		
+		if (Yp<0)
+			MouseInfo.Y=0;
+		else if(Yp>WindowHight )
+			MouseInfo.Y=WindowHight ;
+		else
+			MouseInfo.Y=Yp;		 
+		//For Mouse OverFlow
+		MouseInfo.OverFlowX=((MouseBuffer[WhichBuffer].Byte0 & 0x40)==0 ? false : true);
+		MouseInfo.OverFlowY=((MouseBuffer[WhichBuffer].Byte0 & 0x80)==0 ? false : true);
+
+		#ifdef MOUSE_DEBUG		
+			clrscr(); 
+			short x,y;
+			x=wherex();
+			y=wherey();
+			gotoxy(10,10);
+			printf("MouseInfo.X=%d MouseInfo.Y=%d dX=%d  DY=%d LeftBTN=%d MiddleBTN=%d RightBTN=%d",MouseInfo.X,MouseInfo.Y,MouseInfo.DX ,MouseInfo.DY ,((MouseInfo.Button & MouseBTNLeft)==0 ? 0 : 1) ,((MouseInfo.Button & MouseBTNMiddle)==0 ? 0 : 1) ,((MouseInfo.Button & MouseBTNRight)==0 ? 0 : 1));
+			gotoxy(x,y);
+		#endif
+		DrawMouse();
+	}
+	if (reEnable==true) enable();
+}
+
+
+/// <summary>		
+	///Installs the Mouse handler into IRQ12
+	///Width: Is For X Resolation,It is Depend On Graphics Mode
+	///Hight: Is For Y Resolation,It is Depend On Graphics Mode
+/// </summary>
+void Mouse_Install(unsigned short Width ,unsigned short Hight )
+{
+	unsigned char data;
+	
+	MouseSize=16;//Mouse BMP Is 16*16
+	//MouseBMP=(int **)OrginalMouseBMP;//Mouse Bitmap Image
+	MouseBMP=MainGraphicArea;
+	MouseBMP.Buffer=(unsigned short *)OrginalMouseBMP;//Mouse Bitmap Image
+	MouseBMP.width=MouseSize;
+	MouseBMP.hight=MouseSize;
+	
+	BouseBackgroundBMP=MainGraphicArea;
+	BouseBackgroundBMP.width=MouseSize;
+	BouseBackgroundBMP.hight=MouseSize;
+	BouseBackgroundBMP.Buffer=(unsigned short *)kmalloc(MouseSize*MouseSize*BouseBackgroundBMP.BytePerPixel,"Mouse Init");
+	if(BouseBackgroundBMP.Buffer==NULL)
+	{
+		kprintf("Mouse_Install :Memory Not Allocated.");
+	}
+	MouseInfo.Button =MouseBTNNone;
+	MouseInfo.X=ceill(Width/2);
+	MouseInfo.Y=ceill(Hight/2);
+	MouseInfo.Hiden=false;
+	WindowWidth =Width; 
+	WindowHight =Hight;
+	MouseOldInfo=MouseInfo;
+	WindowGraphicMemoryCopy(BouseBackgroundBMP,POINT(0,0) ,MainGraphicArea ,POINT(MouseOldInfo.X,MouseOldInfo.Y) ,SIZE(MouseSize,MouseSize));
+
+	MouseBuffer=(struct MouseDataRecive*)kmalloc(MOUSE_BUFFER_SIZE * sizeof(struct MouseDataRecive),"Mouse Data Recive");
+
+	if(MouseBuffer==NULL)
+	{
+		kprintf("Mouse_Install :Memory Not Allocated.");
+	}
+	//Mouse_Update_func=UpdateMouseBackGround; //Function To Update Mouse When Drawing On The Mouse
+
+    irq_install_handler(12, MouseHandler);
+
+	outportb(0x00a0, 0x64);
+	outportb(0x0020, 0x62); 
+    data = ReadMouse();	
+#ifdef MOUSE_DEBUG	
+	printf("\nMouseInstall And Recive Data=%2X",data);
+#endif
+	EnableMouse();	
+	kprintf("Mouse Driver Is Install\t\t\t\t\t\t[ OK ]");
+} 
+unsigned char ReadMouse()
+{
+	unsigned char data;
+	DisableKeyboard();
+	data = inportb(PORT_KEYDATA);
+	EnableKeyboard(); 
+	return data;
+}
+
+void EnableMouse()
+{	
+    WaitKeyBoardIsSendReady();
+    outportb(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+    WaitKeyBoardIsSendReady();
+    outportb(PORT_KEYDATA, MOUSECMD_ENABLE);
+#ifdef MOUSE_DEBUG	
+	printf("Enable Mouse Is Done \n");
+#endif	
+	CountMouseDataRecive=0;
+    return;
+}
+
+void DisableMouse()
+{	
+    WaitKeyBoardIsSendReady();
+    outportb(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+    WaitKeyBoardIsSendReady();
+    outportb(PORT_KEYDATA, MOUSECMD_ENABLE+1);
+#ifdef MOUSE_DEBUG	
+	printf("Disable Mouse Is Done \n");
+#endif
+    return;
+}
+
+/// <summary>		
+	///Check if command is accepted. (not got stuck in inputbuffer)
+/// </summary>
+void CheckPort()
+{
+	/*xor  cx, cx		
+	.again:
+	in   al, 0x64		; read from keyboardcontroller
+	test al, 2			; Check if input buffer is empty
+	jz  .go
+	jmp .again			; (demand!) This may couse hanging, use only when sure.
+	.go*/
+	while((inp8(PORT_KEYCMD)&0x2)!=0);
+}
+
+/// <summary>		
+	///Disable Keyboard
+/// </summary>
+void DisableKeyboard()
+{
+	/*mov  al, 0xad		; Disable Keyboard
+	out  0x64, al		; write to keyboardcontroller
+	call CHKPRT			; check if command is progressed (demand!)*/
+   outp8(PORT_KEYCMD ,KEYCMD_Disable );
+   CheckPort();
+}			
+
+/// <summary>		
+	///Enable Keyboard
+/// </summary>
+void EnableKeyboard()
+{
+	/*mov  al, 0xae		; Enable Keyboard
+	out  0x64, al		; write to keyboardcontroller
+	call CHKPRT			; check if command is progressed (demand!)*/
+   outp8(PORT_KEYCMD ,KEYCMD_ENABLE );
+   CheckPort();
+}
+
+
+
+
+
+//Help To Learn Mouse Protocol
+
+//***********************************************************************
+// PS/2 mouse protocol (Standard PS/2 protocol)
+//***********************************************************************
+// ----------------------------------------------------------------------
+//
+// Data packet format: 
+// Data packet is 3 byte packet. 
+// It is send to the computer every time mouse state changes 
+// (mouse moves or keys are pressed/released). 
+// 
+//   Bit7 Bit6 Bit5 Bit4 Bit3 Bit2 Bit1 Bit0 
+// 
+// 1. YO   XO   YS   XS   1    MB   RB   LB 
+// 2. X7   X6   X5   X4   X3   X2   X1   X0
+// 3. Y7   Y6   Y5   Y4   Y3   Y2   Y1   Y0
+//
+// This means:
+// YO   :  Overflow bit for Y-coord (movement to fast)
+// XO   :  Overflow bit for X-coord (movement to fast) 
+// X0-X7:  byte of the x-coord 
+// Y0-Y7:  byte of the y-coord
+// LB   :  Left button pressed
+// RB   :  Right button pressed
+// MB   :  Middle button pressed
+//
+//*********************************************************************** 
+//If you want to use the scroll function u might look up the protocol at 
+//the company that made the mouse. 
+//(the packet format will then mostly be greater then 3)
+//***********************************************************************
+
+
+

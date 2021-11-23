@@ -1,0 +1,64 @@
+#include <io.h>
+
+unsigned char inportb (unsigned short _port)
+{
+    unsigned char rv;
+    __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+    return rv;
+}
+
+unsigned int inportw (unsigned short _port)
+{
+	return inp16(_port);    
+}
+
+void outportb (unsigned short _port, unsigned char _data)
+{
+    __asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
+}
+
+void outportw (unsigned short _port, unsigned int _data)
+{
+    return outp16(_port, _data);
+}
+
+
+/*
+ * Short delay.  May be needed when talking to some
+ * (slow) I/O devices.
+ */
+void IO_Delay(void)
+{
+    unsigned char value = 0;
+    __asm__ __volatile__ ("outb %0, $0x80":	: "a" (value));
+}
+
+/*
+ * Query whether or not interrupts are currently enabled.
+ *disable() / enable(); Modified.
+ */
+bool IsInterruptsEnabled(void)
+{
+    unsigned int eflags=GetCurrentEFLAGS();	
+    return (eflags & EFLAGS_IF) != 0;
+}
+
+unsigned disable(void)
+{
+	unsigned ret_val;
+	__asm__ __volatile__("pushfl	\n"
+						 "popl %0	\n"
+						 "cli		  "
+						:"=a"(ret_val):
+						);
+	return ret_val;
+}
+
+void enable(void)
+{
+	__asm__ __volatile__("sti"
+		:
+		:
+		);
+}
+

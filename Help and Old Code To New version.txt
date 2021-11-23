@@ -1,0 +1,94 @@
+////////////////////////////////////////boosect.asm//////////////////////////////////////
+;reset_drive:
+;        mov ah, 0               ; RESET-command
+;        int 13h                 ; Call interrupt 13h
+;        or ah, ah               ; Check for error code
+;        jnz reset_drive         ; Try again if ah != 0
+;
+;        mov ax, KERNEL_SEGMENT_ADDRESS
+;        mov es, ax
+;        mov bx, 0x0000          ; Destination address = 1000:0000(liner address:100000)
+;
+;        mov ah, 02h             ; READ SECTOR-command
+;        mov al, 48h             ; Number of sectors to read = 1
+;        mov ch, 0               ; Cylinder = 0
+;        mov cl, 02h             ; Sector = 2
+;        mov dh, 0               ; Head = 0
+;        int 13h                 ; Call interrupt 13h
+;        
+;        or ah, ah               ; Check for error code
+;        jz No_Err	            ; Try again if ah = 0        
+;        mov si,_error_occur_msg
+;		call puts
+;		jmp	reset_drive
+; No_Err: 
+///////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////HDDIO.C///////////////////////////////////////////
+//static word hdd_base[4] = {hdd_base_0, hdd_base_1, hdd_base_0, hdd_base_1};
+//static byte hdd_typ[4]  = {hdd_master, hdd_master, hdd_slave, hdd_slave};
+//
+//int read_sector_chs (byte disk, byte head, word cylinder, byte sector,
+//                     byte count, void *buf) {
+//
+//  word *p;
+//  word base;
+//  int cnt;
+//
+//  base=hdd_base[disk];
+//  p = (word *)buf;
+//
+//  while ((inportb(base+hdd_reg_status) & 0x40) != 0x40) {};
+//
+//  outportb (base+hdd_reg_sec_count, count);
+//  outportb (base+hdd_reg_sec_num, sector);
+//  outportb (base+hdd_reg_cyl_lo, cylinder & 0xFF);
+//  outportb (base+hdd_reg_cyl_hi, cylinder >> 8);
+//  outportb (base+hdd_reg_drv_head, hdd_typ[disk] | (disk << 4) | head);
+//  cnt = count; cnt <<= 8;
+//  outportb (base+hdd_reg_command, hdd_cmd_read);
+//  while ((inportb(base+hdd_reg_status) & 8) != 8) {};
+//  while (cnt--) *p++ = inportw (base+hdd_reg_data);
+//
+//  return 1;
+//}
+/////////////////////////////////////////////////////////////////////////////////////////
+
+GCC Inline Assembly
+===================
+
+1) you can use * to jump to a particular function
+
+eg:
+	int main(void)
+	{
+		cls();
+
+		kprint("Dynacube\t1.0\tLoading [dd/mm/yyyy]\n");
+		kprint("------------------------------------------------------\n");
+
+		kdump();
+		asm("call *%0"::"a"(main));
+	}
+	
+/////////////////////////////////////////////////////////////////////////////////////////
+	
+/// <summary>		
+	/// Required method for Designer support - do not modify
+	/// the contents of this method with the code editor.	
+/// </summary>
+/////////////////////////////////////////////////////////////////////////////////////////	
+
+GCC C
+=====
+
+
+INTEL
+=====
+
+
+General
+=======
+1. PCI pmode bios entry : 0xF:0xABB0 checksum = 0
+2. PMID:  0xC:0x53E0
+

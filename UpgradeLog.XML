@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="ParsOS">
+</Property><Property Name="Solution File" Value="E:\Work\project MyOS\Latest Version\ParsOS\ParsOS.sln">
+</Property><Property Name="Date" Value="Saturday, November 3, 2012">
+</Property><Property Name="Time" Value="19:07:02 PM">
+</Property></Properties><Event ErrorLevel="0" Project="ParsOS" Source="ParsOS.vcproj" Description="Converting project file 'E:\Work\project MyOS\Latest Version\ParsOS\ParsOS.vcproj'.">
+</Event><Event ErrorLevel="1" Project="ParsOS" Source="ParsOS.vcproj" Description="VCConvertEngine could not convert attribute CompileAsManaged =  under Tool VCNMakeTool.">
+</Event><Event ErrorLevel="0" Project="ParsOS" Source="ParsOS.vcproj" Description="Done converting to new project file 'E:\Work\project MyOS\Latest Version\ParsOS\ParsOS.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="ParsOS" Source="ParsOS.vcproj" Description="Converted">
+</Event></UpgradeLog>

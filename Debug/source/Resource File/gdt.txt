@@ -1,0 +1,9 @@
+KRNL_CODE_SEL	from 3	ring 0	to 1
+KRNL_DATA_SEL	from 2	ring 0	to 2
+USER_DATA_SEL	from 4	ring 3	to 3
+USER_CODE_SEL	from 5	ring 3	to 4
+LINEAR_DATA_SEL	from 6	ring 0	to 5
+LINEAR_CODE_SEL	from 7	ring 0	to 6
+_16BIT_DATA_SEL	from 8	ring 0	to 7
+_16BIT_CODE_SEL	from 9	ring 0	to 8
+TSS_SEL		from 1	ring 0	to 9

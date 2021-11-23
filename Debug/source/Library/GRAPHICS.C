@@ -1,0 +1,630 @@
+#include <graphics.h>
+
+
+#define COLORRGB_TO_COLORNO(color, BlueMaskSize, GreenMaskSize, RedMaskSize) (unsigned int) ((color.red >> g_RedMaskShift)<<(BlueMaskSize+GreenMaskSize))+((color.green >> g_GreenMaskShift)<<BlueMaskSize) + (color.blue >> g_BlueMaskShift)
+
+/*Useful globals.*/
+struct SVGA *SVGA1;
+struct SVGA_DETAIL *SVGADetail;
+unsigned short g_Xcenter;
+unsigned short g_Ycenter;
+unsigned short g_bytesperline;
+unsigned char g_RedMaskShift,g_GreenMaskShift,g_BlueMaskShift;
+
+bool IsGraphic;
+unsigned char  RGB_BLACK[3]={0,0,0};
+unsigned char  RGB_WHITE[3]={0xff,0xff,0xff};
+
+unsigned short page_num=0,_scr_width,no_of_pages=0,color_mode=0;
+void  _NULL(){}
+void (*_bios_setpage_func)()=_NULL;
+//void (*Mouse_Update_func)(unsigned int,unsigned int)=NULL;
+//void (*putpixel)(GraphicArea,unsigned int,unsigned int,ColorRGB ,DrawMode )=(void(*)(GraphicArea,unsigned int,unsigned int,ColorRGB ,DrawMode ))_NULL;
+//int (*getpixel)(GraphicArea,unsigned int,unsigned int)=(int(*)(GraphicArea,unsigned int,unsigned int))_NULL;
+
+char _signiture1[4]={"VESA"};
+char _signiture2[4]={"VBE2"};
+
+union REGS  inregs,outregs;
+struct SREGS  segregs;
+
+//////////////////////////////////////GetPixel/PutPixel/////////////////////////////
+
+/*Notice:for all drawing functions,_x is the number of line,_y is the number of column.*/
+
+/*For 1024*768*256 mode only, very fast!
+It can draw 5,000,000 pixels in order within 1 second on PC300.
+*/
+void putpixel105h(GraphicArea G_PTR,unsigned _x,unsigned _y,ColorRGB color ,DrawMode mode )
+{ 	 
+	TextMode(TEXT_80x60);
+	KASSERT();
+}
+int getpixel105h(GraphicArea G_PTR,unsigned _x,unsigned _y )
+{
+	TextMode(TEXT_80x60);
+	KASSERT();return 0; 
+}
+
+///*For 1024*768*16-Bit_color graphic mode only,very fast!
+//It can draw about 4,500,000 pixels in order within 1 second on PC300.
+//*/
+void putpixel116h(GraphicArea G_PTR,unsigned _x,unsigned _y,ColorRGB color ,DrawMode mode )
+{
+	TextMode(TEXT_80x60);
+	KASSERT(); 
+}
+int getpixel116h(GraphicArea G_PTR,unsigned _x,unsigned _y )
+{
+	TextMode(TEXT_80x60);
+	KASSERT();
+	return 0;
+}
+/*For 1024*768*32-Bit color graphic mode only,very fast!
+It can draw about 4,000,000 pixels in order within 1 second on PC300.
+*/
+void putpixel118h32(GraphicArea G_PTR,unsigned _x,unsigned _y,ColorRGB color ,DrawMode mode )
+{ 
+	TextMode(TEXT_80x60);
+	KASSERT(); 
+}
+int getpixel118h32(GraphicArea G_PTR,unsigned _x,unsigned _y )
+{ 
+	TextMode(TEXT_80x60);
+	KASSERT(); 
+	return 0;
+}
+
+/*For any 32-Bit-color graphic mode,fast!
+It can draw 1,500,000 pixels in order within 1 second on PC300.
+*/
+void putpixel32b(GraphicArea G_PTR,unsigned _x,unsigned _y,ColorRGB color ,DrawMode mode )
+{
+	TextMode(TEXT_80x60);
+	KASSERT(); 
+}
+int getpixel32b(GraphicArea G_PTR,unsigned _x,unsigned _y )
+{ 
+	TextMode(TEXT_80x60);
+	KASSERT(); 
+	return 0;
+}
+
+/*For any 24-Bit-color graphic mode,a bit slow!
+It can draw 1,000,000 pixels in order within 1 second on PC300.
+*/
+void putpixel24b(GraphicArea G_PTR,unsigned _x,unsigned _y,ColorRGB color ,DrawMode mode )
+{
+ 
+}
+int getpixel24b(GraphicArea G_PTR,unsigned _x,unsigned _y )
+{ 
+	TextMode(TEXT_80x60);
+	KASSERT(); 
+	return 0;
+}
+
+/*For any 16-Bit-color graphic mode,fast!
+It can draw 3,500,000 pixels in order within 1 second on PC300.
+*/
+void putpixel16b(GraphicArea G_PTR,unsigned xCoord,unsigned yCoord,ColorRGB color ,DrawMode mode)
+{	
+	if (SVGA1== NULL)
+	{
+	  kprintf("SVGA Is Not Install...");
+	  return ;	  
+	}	
+	// Make sure the pixel is in the buffer
+	if ((xCoord >= G_PTR.width) || (yCoord >= G_PTR.hight))    
+		return;// Don't make an error condition, just skip it
+
+	// Make sure we're not drawing off the screen
+	if ((xCoord < 0) || (xCoord >= G_PTR.width) || (yCoord < 0) || (yCoord >= G_PTR.hight))
+		return;	
+	/*if(Mouse_Update_func!=NULL)
+		Mouse_Update_func(xCoord ,yCoord );*/
+	
+	*((word *)(G_PTR.Buffer+ xCoord + G_PTR.width*yCoord)) = ColorRGBToColorNO(color);	
+
+	//RGBDrawPixel(MainGraphicArea.Buffer,&color,mode,xCoord+10,yCoord+10);
+}
+
+int getpixel16b(GraphicArea G_PTR,unsigned xCoord,unsigned yCoord)
+{
+	// Make sure the pixel is in the buffer
+	if ((xCoord >= G_PTR.width) || (yCoord >= G_PTR.hight))    
+		return -1;// Don't make an error condition, just skip it
+
+	// Make sure we're not drawing off the screen
+	if ((xCoord < 0) || (xCoord >= G_PTR.width) || (yCoord < 0) || (yCoord >= G_PTR.hight))
+		return -1;	
+	return *((dword *)(G_PTR.Buffer + xCoord + G_PTR.width*yCoord));	
+}
+
+int RGBDrawPixel(unsigned short *VideoBuffer,ColorRGB *foreground,DrawMode mode, int xCoord, int yCoord)
+{
+  // Draws a single pixel to the graphic buffer using the preset foreground
+  // color
+
+  int status = 0;
+  unsigned char *framebufferPointer = NULL;
+  short pix = 0;
+
+  // If the supplied kernelGraphicBuffer is NULL, we draw directly to the
+  // whole screen
+  if (SVGA1 == NULL)
+  {
+	 // kprintf("VGA Not Init...");
+	  return -1;
+  }
+  // Make sure the pixel is in the buffer
+  if ((xCoord >= MainGraphicArea.width) || (yCoord >= MainGraphicArea.hight))
+    // Don't make an error condition, just skip it
+    return (status = -1);
+
+  // Make sure we're not drawing off the screen
+  if ((xCoord < 0) || (xCoord >= MainGraphicArea.width) ||
+      (yCoord < 0) || (yCoord >= MainGraphicArea.hight))
+    return (status = -1);
+
+  // Draw the pixel using the supplied color
+  framebufferPointer =(unsigned char *)( VideoBuffer +(((MainGraphicArea.width * yCoord) + xCoord) /** MainGraphicArea.BytePerPixel*/));
+	
+  if ((MainGraphicArea.BitsPerPixel == 32) || (MainGraphicArea.BitsPerPixel == 24))
+    {
+      if (mode == Draw_Normal)
+		{
+		 framebufferPointer[0] = foreground->blue;
+		 framebufferPointer[1] = foreground->green;
+		 framebufferPointer[2] = foreground->red;
+		}
+		else if (mode == Draw_Or)
+		{
+		 framebufferPointer[0] |= foreground->blue;
+		 framebufferPointer[1] |= foreground->green;
+		 framebufferPointer[2] |= foreground->red;
+		}
+		else if (mode == Draw_Xor)
+		{
+		 framebufferPointer[0] ^= foreground->blue;
+		 framebufferPointer[1] ^= foreground->green;
+		 framebufferPointer[2] ^= foreground->red;
+		}
+    }
+
+  else if ((MainGraphicArea.BitsPerPixel == 16) || (MainGraphicArea.BitsPerPixel == 15))
+    {
+      if (MainGraphicArea.BitsPerPixel == 16)
+		 pix = (((foreground->red >> 3) << 11) | ((foreground->green >> 2) << 5) | (foreground->blue >> 3));
+      else
+		 pix = (((foreground->red >> 3) << 10) | ((foreground->green >> 3) << 5) | (foreground->blue >> 3));      
+      if (mode == Draw_Normal)
+		 *((short *) framebufferPointer) = pix;
+      else if (mode == Draw_Or)
+		 *((short *) framebufferPointer) |= pix;
+      else if (mode == Draw_Xor)
+		 *((short *) framebufferPointer) ^= pix;
+    }
+  return (status = 0);
+}
+
+
+/*For any 256-color graphic mode, very fast!
+It can draw 4,000,000 pixels in order within 1 second on PC300.
+*/
+void putpixel256(GraphicArea G_PTR,unsigned _x,unsigned _y,ColorRGB color ,DrawMode mode )
+{ 
+	TextMode(TEXT_80x60);
+	KASSERT();
+}
+int getpixel256(GraphicArea G_PTR,unsigned _x,unsigned _y)
+{ 
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////////////
+void cleardevice()
+{
+	int i;
+	for(i=0;i<SVGA1->Xresolution*SVGA1->Yresolution;i++) MainGraphicArea.Buffer[i]=0;
+	return;
+ }
+
+bool GetSVGADetail(char *_info_buffer)
+{
+	int x;
+	//_ES=FP_SEG(_info_buffer);
+	//_DI=FP_OFF(_info_buffer);
+	//_AX=0x4f00;
+	//geninterrupt(0x10);		
+	inregs.x.ax=0x4F00;
+	inregs.x.di=FP_OFF(GRAPHIC_INFO_ADDRESS);	//save information at es:di
+	segregs.es=FP_SEG(GRAPHIC_INFO_ADDRESS);
+	int86x(0x10,&inregs,&outregs,&segregs,ES_LOAD);
+	if(outregs.x.ax!=0x004F)// Make sure the function call was successful
+		return false;	
+	for(x=0;x<4;x++)
+		{
+		if(_signiture1[x]!=_info_buffer[x])
+			{
+			for(x=0;x<4;x++)
+				if(_signiture2[x]!=_info_buffer[x])	return false;
+			}
+		}
+	/*printf("_info_buffer[40]=%4X",_info_buffer[40]);getch();
+	dump(_info_buffer,44,0);*/
+	SVGADetail=(struct SVGA_DETAIL*)_info_buffer;	
+	//dump((char *)SVGADetail,50);	
+	SVGADetail->inc=i386LinearToFp(SVGADetail->inc);//convert real address[ that generate in real mode] to the protected mode that each point to same location of ram[tell liner address]
+	SVGADetail->table=i386LinearToFp(SVGADetail->table);
+	//printf("\na[4]=%s ver=%d inc=%2X ability=%2X  table=%2X  mem=%2X\n",SVGADetail->a,SVGADetail->ver,SVGADetail->inc,SVGADetail->ability,SVGADetail->table,SVGADetail->mem);
+	kprintf("Detect SVGA VER %d  Mem=%d.",SVGADetail->ver,SVGADetail->mem);getch();
+	return true;
+}
+
+int initgraph(GraphicMode _vmode)
+{		
+	int x,_retv;
+	char *_info_buffer=(char *)GRAPHIC_INFO_ADDRESS; //_info_buffer=(char*)malloc(512);
+	if(_info_buffer==NULL)return 4;
+	IsGraphic=false; 
+	
+	if(_vmode&0x0100)
+	{
+		if(GetSVGADetail(_info_buffer)==false)
+		{
+			_retv=1;
+			goto end;
+		}
+		for(x=0;SVGADetail->table[x]!=0xffff;x++)
+		{
+			//printf("\n%d",SVGADetail->table[x]);getch();
+			if(SVGADetail->table[x]==_vmode)goto found;		
+		}
+
+		_retv=2;
+		goto end;			
+found:	
+		inregs.x.ax=0x4F02;			  //_AX=0x4f02;
+		inregs.x.bx=_vmode+0x4000;	  //_BX=_vmode;	
+		int86(0x10,&inregs,&outregs); //geninterrupt(0x10);	/* Disable this line for debugging */
+	}
+	else 
+	{	inregs.x.ax=_vmode;			 //_AX=_vmode;
+		inregs.h.ah^=inregs.h.ah;	 //_AH^=_AH;
+		int86(0x10,&inregs,&outregs);//geninterrupt(0x10);
+		if(_vmode==0x13)
+		{	_scr_width=320;
+			no_of_pages=1;
+			x=M256;
+			goto skip;
+		}
+		_retv=0;
+		goto end;
+	}
+	segregs.es=0;									//_ES=FP_SEG(_info_buffer);
+	inregs.x.di=GRAPHIC_INFO_ADDRESS;				//_DI=FP_OFF(_info_buffer);
+	inregs.x.ax=0x4F01;								//_AX=0x4f01;
+	inregs.x.cx=_vmode;								//_CX=_vmode;
+	int86x(0x10,&inregs,&outregs,&segregs,ES_LOAD);	//geninterrupt(0x10);
+	SVGA1=(struct SVGA*)GRAPHIC_INFO_ADDRESS;		//SVGA1=(struct SVGA*)_info_buffer;
+	SVGA1->func=i386LinearToFp(SVGA1->func);		//Fix Address
+	//printf("PhysBasePtr=%2X\n",SVGA1->PhysBasePtr);
+	// dump((char *)&SVGA1,0x100);
+	
+	_bios_setpage_func=SVGA1->func; 
+	page_num=0;
+	
+	/*printf("parameter=%d winA_attr=%1X winB_attr=%1X ",SVGA1->mode_attr,SVGA1->winA_attr,SVGA1->winB_attr );
+	printf("\nwingranularity=%2X  winsize=%2X winA_seg=%2X  winB_seg=%2X\n",SVGA1->wingranularity,SVGA1->winsize,SVGA1->winA_seg,SVGA1->winB_seg );
+	printf("\n func=%2X  bytesperscanline=%2X Xresolution=%2X  Yresolution=%2X\n",SVGA1->func,SVGA1->bytesperscanline,SVGA1->Xresolution,SVGA1->Yresolution );
+	printf("\n numberofimagepages=%2X  reserved1=%2X redmasksize=%2X  redfieldposition=%2X\n",SVGA1->numberofimagepages,SVGA1->reserved1,SVGA1->redmasksize,SVGA1->redfieldposition );
+	getch();*/
+	_scr_width=SVGA1->bytesperscanline;
+	 //_scr_width*(SVGA1->Yresolution);
+
+	if(_AX()) __asm__ ("inc %dx");//_DX++; 
+	//printf("\nax=%2X\n",_AX());
+	__asm__ ("movw %%dx,%0"::"m"(no_of_pages) ); //no_of_pages=_DX;
+	
+	switch(SVGA1->bitsperpixel)
+	{
+		case 8:	
+			color_mode=x=M256;break;
+		case 15:
+		case 16:
+			color_mode=x=M16B;break;
+		case 24:
+			color_mode=x=M24B;goto skip;
+		case 32:
+			color_mode=x=M32B;break;
+		default:
+			_retv=3;goto end;
+	}
+	 
+	if(SVGA1->Xresolution==1024)x+=10;	
+skip:
+
+	if (SVGA1->bitsperpixel == 15)		
+		MainGraphicArea.BytePerPixel=2;
+	else
+		MainGraphicArea.BytePerPixel=SVGA1->bitsperpixel/8;
+	MainGraphicArea.width=SVGA1->Xresolution;
+	MainGraphicArea.hight=SVGA1->Yresolution;
+	MainGraphicArea.BitsPerPixel=SVGA1->bitsperpixel;
+	g_bytesperline=SVGA1->bytesperscanline;
+	g_Xcenter=MainGraphicArea.width>>1;
+	g_Ycenter=MainGraphicArea.hight>>1;	 
+	X_Resolution=MainGraphicArea.width;
+	Y_Resolution=MainGraphicArea.hight; 
+
+	g_RedMaskShift=(sizeof(ColorType)*8)-SVGA1->redmasksize;
+	g_GreenMaskShift=(sizeof(ColorType)*8)-SVGA1->greenmasksize;
+	g_BlueMaskShift=(sizeof(ColorType)*8)-SVGA1->bluemasksize;
+
+	MainGraphicArea.Buffer=(unsigned short *)SVGA1->PhysBasePtr;
+	MainGraphicArea.Buffer=(unsigned short *)SVGA1->PhysBasePtr;
+	switch(x){
+		case M256:
+				putpixel=putpixel256;
+				getpixel=getpixel256;
+				break;
+		case M16B:
+				putpixel=putpixel16b;
+				getpixel=getpixel16b;		    
+				break;
+		case M24B:
+				putpixel=putpixel24b;
+				getpixel=getpixel24b;
+				break;
+		case M32B:	
+				putpixel=putpixel32b;
+				getpixel=getpixel32b;		  
+				break;
+		case MS1K:
+				putpixel=putpixel105h;
+				getpixel=getpixel105h;
+				break;
+		case MS2K:
+				putpixel=putpixel116h;
+				getpixel=getpixel116h;
+				break;
+		case MS4K:
+				putpixel=putpixel118h32;
+				getpixel=getpixel118h32;
+				break;
+		default	:
+				_retv=3;
+				goto end;
+	}	
+
+	cleardevice();
+	_retv=0;
+	IsGraphic=true;
+end:
+ 
+	 //free(_info_buffer);
+	if(IsGraphic==false)TextMode(TEXT_80x25);
+	return _retv;
+}
+
+#define VIDEOPAGE	        0
+#define ROWS		        50
+#define COLUMNS		        80
+#define FOREGROUNDCOLOR         7
+#define BACKGROUNDCOLOR         1
+#define ERRORCOLOR              6
+void TextMode(TextMods TextMode)
+{	
+	//mov AH, 05h
+	//mov AL, VIDEOPAGE
+	//int 10h
+	inregs.h.ah=0x05;			  
+	inregs.h.al=VIDEOPAGE;
+	int86(0x10,&inregs,&outregs);
+	//;; Set the overscan color.  That's the color that forms the
+	//;; default backdrop, and sometimes appears as a border around
+	//;; the printable screen
+	//mov AX, 0B00h
+	//mov BH, 0
+	//mov BL, BACKGROUNDCOLOR
+	//int 10h
+	inregs.x.ax=0x0B00;			  
+	inregs.h.bh=0;
+	inregs.h.bl=BACKGROUNDCOLOR;
+	int86(0x10,&inregs,&outregs);
+	//;; We will try to change text modes to a more attractive 80x50
+	//;; mode.  This takes a couple of steps	
+	//;; Change the number of scan lines in the text display
+	//mov AX, 1202h		; 400 scan lines
+	//mov BX, 0030h		; Change scan lines command
+	//int 10h
+	inregs.x.ax=0x1202;			  
+	inregs.x.bx=0x0030;	
+	int86(0x10,&inregs,&outregs);
+	//;; Set the text video mode to make the change take effect
+	//mov AX, 0003h
+	//;; Should we clear the screen?
+	//mov BX, word [SS:(BP + 18)]
+	//shl BX, 7
+	//or AX, BX
+	//int 10h
+
+	//;; The following call messes with ES, so save it
+	//push ES
+	
+	//;; Change the VGA font to match a 80x50 configuration
+	//mov AX, 1112h		; 8x8 character set
+	//mov BL, 0
+	//int 10h
+	inregs.x.ax=TextMode;			  
+	inregs.h.bl=0;	
+	int86(0x10,&inregs,&outregs);
+
+	//;; Restore ES
+	//pop ES
+
+    //;; Should we blank the screen?
+	//cmp word [SS:(BP + 18)], 0
+	//jne .done	
+    //    mov AX, 0700h
+    //    mov BH, BACKGROUNDCOLOR
+    //    and BH, 00000111b
+    //    shl BH, 4
+    //    or BH, FOREGROUNDCOLOR
+    //    mov CX, 0000h
+    //    mov DH, ROWS
+    //    mov DL, COLUMNS
+    //    int 10h
+
+	//inregs.x.ax=0x0700;			  
+	//inregs.h.bh=((BACKGROUNDCOLOR & 0x07)<<4) | FOREGROUNDCOLOR;	
+	//inregs.x.cx=0x0;
+	//inregs.h.dh=ROWS;
+	//inregs.h.dl=COLUMNS;
+	//int86(0x10,&inregs,&outregs);
+	switch(TextMode){
+		case TEXT_132x25:
+			X_Resolution=132;
+			Y_Resolution=25;
+			break;
+		case TEXT_132x43:
+			X_Resolution=132;
+			Y_Resolution=43;
+			break;
+		case TEXT_132x50:
+			X_Resolution=132;
+			Y_Resolution=50;
+			break;
+		case TEXT_132x60:
+			X_Resolution=132;
+			Y_Resolution=60;
+			break;
+		case TEXT_80x25:
+			X_Resolution=80;
+			Y_Resolution=25;
+			break;
+		case TEXT_80x60:
+			X_Resolution=80;
+			Y_Resolution=60;
+			break;		
+		default	 :
+			X_Resolution=80;
+			Y_Resolution=50;
+	}	
+}
+
+//Can Optimize This Function When There isn't Clip.
+bool GraphicMoveClip(GraphicArea G_PTR,unsigned int DestX ,unsigned int DestY ,unsigned int SrcX ,unsigned int SrcY ,unsigned int Width ,unsigned int Hight)
+{
+	if(G_PTR.Buffer==NULL )
+	{
+		kprintf("GraphicMoveClip :GraphicArea.Buffer Is Null.");
+		return false;
+	}
+	Point PS,PD;
+	PS.X=SrcX;
+	PS.Y=SrcY;
+
+	PD.X=DestX;
+	PD.Y=DestY;
+
+	Size s;
+	s.Hight=Hight;
+	s.Width=Width;
+	return WindowGraphicMemoryCopy(G_PTR ,PD ,G_PTR ,PS ,s );	
+}
+
+bool GraphicClearClip(GraphicArea G_PTR,unsigned int SrcX ,unsigned int SrcY ,unsigned int Width ,unsigned int Hight,ColorRGB Color)
+{	
+	if(G_PTR.Buffer==NULL)
+	{
+		kprintf("GraphicClearClip :GraphicArea.Buffer Is Null.");
+		return false;
+	}
+	if(G_PTR.BytePerPixel<=1)
+		return false;
+	unsigned short TypeSize=ceill(G_PTR.BytePerPixel/2);
+	unsigned int Y;		
+	 
+	//printf("Point(%d,%d)Size(%d,%d)",SrcX ,SrcY ,Width,Hight);getch();
+	int Src;
+	Src=((SrcY*G_PTR.width+SrcX)*TypeSize);
+	
+	
+	for(Y=0 ;Y<Hight;Y++)
+	{
+		  __asm__ __volatile__ ("cld						\n"
+								"rep						\n"
+								"stosw						  "
+								:
+								: "D" (Src+G_PTR.Buffer), "a" ((unsigned short)ColorRGBToColorNO(Color)), "c" (Width)				  
+								);
+	  Src+=G_PTR.width;
+	  //printf("Buf=%p Name=%s (%d,%d)(%d,%d)\n",WINDTest1->Form.Control->CGraphicArea.Buffer,WINDTest1->Form.CName ,WINDTest1->Form.CPoint.X ,WINDTest1->Form.CPoint.Y,WINDTest1->Form.CSize.Width,WINDTest1->Form.CSize.Hight );
+	  //printf("Y=%d Src=%d Hight=%d\r",Y,Src,Hight);getch();
+	  //clrscr();
+	}
+	//printf("(%d,%d)(%d,%d)",G_PTR.width ,G_PTR.hight,Width,Hight);getch();
+	//printf("Finish Successful");
+	return true;
+}
+
+//Can Optimize This Function When There isn't Clip.
+bool WindowGraphicMemoryCopy(GraphicArea MDest_PTR ,Point DestPoint ,GraphicArea MSrc_PTR ,Point SrcPoint ,Size WindowSize)
+{	
+	if(MDest_PTR.Buffer==NULL || MSrc_PTR.Buffer==NULL)
+	{
+		kprintf("WindowGraphicMemoryCopy :GraphicArea.Buffer Is Null.");
+		return false;
+	}
+	if(MDest_PTR.BytePerPixel<=1 || MSrc_PTR.BytePerPixel!=MDest_PTR.BytePerPixel)
+		return false;
+	//Source Point Is Out Of Memory
+	if(MSrc_PTR.width<=SrcPoint.X || MSrc_PTR.hight<=SrcPoint.Y)
+		return false;
+	//Destantion Point Is Out Of Memory
+	if(MDest_PTR.width<=DestPoint.X || MDest_PTR.hight<=DestPoint.Y)
+		return false;
+	
+	//Check WindowSize And Fix If Needed	
+	if((WindowSize.Width+SrcPoint.X)>MSrc_PTR.width)			
+		WindowSize.Width-=((WindowSize.Width+SrcPoint.X)-MSrc_PTR.width);	
+	if((WindowSize.Hight+SrcPoint.Y)>MSrc_PTR.hight)			
+		WindowSize.Hight-=((WindowSize.Hight+SrcPoint.Y)-MSrc_PTR.hight);
+	if((WindowSize.Width+DestPoint.X)>MDest_PTR.width)
+		WindowSize.Width-=((WindowSize.Width+DestPoint.X)-MDest_PTR.width);	
+	if((WindowSize.Hight+DestPoint.Y)>MDest_PTR.hight)
+		WindowSize.Hight-=((WindowSize.Hight+DestPoint.Y)-MDest_PTR.hight);		
+	unsigned short TypeSize=ceill(MDest_PTR.BytePerPixel/2);
+	unsigned int Y;
+	unsigned short Src_WordPerLine,Dest_WordPerLine;
+	Src_WordPerLine=(MSrc_PTR.BytePerPixel/2)* MSrc_PTR.width;
+	Dest_WordPerLine=(MDest_PTR.BytePerPixel* MDest_PTR.width)/2;
+
+	unsigned int Src,Dest;		
+	Src=((SrcPoint.Y*MSrc_PTR.width+SrcPoint.X)*TypeSize);
+	Dest=((DestPoint.Y*MDest_PTR.width+DestPoint.X)*TypeSize);
+
+	for(Y=0 ;Y<WindowSize.Hight;Y++)
+	{		
+		__asm__ __volatile__ ("cld		\n"
+							  "rep		\n"
+							  "movsw	\n"
+							  :
+							  : "S" (Src+MSrc_PTR.Buffer), "D" (Dest+MDest_PTR.Buffer), "c" (WindowSize.Width)				  
+							);	 
+	  Src+=Src_WordPerLine;
+	  Dest+=Dest_WordPerLine;	  
+	}
+
+	return true;
+}
+inline Point POINT(unsigned int X,unsigned int Y)
+{
+ return (Point){X,Y};
+}
+inline Size SIZE(unsigned int WIDTH,unsigned int HIGHT)
+{
+ return (Size){WIDTH,HIGHT};
+}
+

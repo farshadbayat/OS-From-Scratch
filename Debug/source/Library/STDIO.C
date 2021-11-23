@@ -1,0 +1,861 @@
+#include <stdio.h>
+
+//	%[flag][width][.prec][mod][conv]
+//	flag:	-	left justify, pad right w/ blanks	DONE
+//		0	pad left w/ 0 for numerics				DONE
+//		+	always print sign, + or -				DONE
+//		' '	(blank)									DONE
+//		#	(???)									no
+//
+//	width:		(field width)						DONE
+//
+//	prec:		(precision)							DONE
+//
+//	conv:	d,i	decimal int							DONE
+//		u	decimal unsigned						DONE
+//		o	octal									DONE
+//		x,X	hex										DONE
+//		f float										DONE
+//		e,g,E,G float								no
+//		c	char									DONE
+//		s	string									DONE
+//		p	ptr										DONE
+//
+//	mod:	N	near ptr							DONE
+//		F	far ptr									DONE
+//		h	short (16-bit) int						no
+//		l	long (32-bit) int						no
+//		L	long long (64-bit) int					no
+
+
+
+int vsprintf(unsigned char *buffer,const char *frmt,va_list ap)
+{
+	int i=0,b=0;
+	while(frmt[i]!='\x0'){
+	   if(frmt[i]=='%')
+	     {
+			i++;//Skip %
+			if(frmt[i]=='%')
+				{
+					buffer[b++]='%';
+					continue;
+				}
+			/*----------------------- Varibales use ------------------*/
+			short w=0,d=0;
+			word Flag=0;
+			char WStr[3]="";
+			char use_point='F';
+			int k=0;
+			/*-----------------------Set Flag Format------------------*/
+			
+			Flag |=((frmt[i]==' '? STDI_BC : 0) & STDI_BC);			//set Blank character in flag
+
+			while(frmt[i]=='+' || frmt[i]=='-' || frmt[i]=='0' || frmt[i]=='#')     //Set Flag Format
+				{	
+					Flag |=((frmt[i]=='-'? STDI_LA : 0) & STDI_LA);	//set left align in flag
+					Flag |=((frmt[i]=='+'? STDI_SS : 0) & STDI_SS);	//set sign(+/-) show in flag
+					Flag |=((frmt[i]=='0'? STDI_ZP : 0) & STDI_ZP);	//set Zero Pad instead of null(' ') in flag
+					i++;
+				}
+			/*-----------------------set w.d  format------------------*/
+			for(;frmt[i]>='0' && frmt[i]<='9' ;k++,i++) //w
+				WStr[k]=frmt[i];
+			WStr[k]='\x0';
+			w=atol(WStr);
+			if(frmt[i]=='.')
+				{
+					use_point='T';
+					i++;//Skip Dot
+					k=0;
+					for(;frmt[i]>='0' && frmt[i]<='9' ;k++,i++)//d
+						WStr[k]=frmt[i];
+					WStr[k]='\x0';
+					d=atol(WStr);
+				}
+		  /*-----------------------set mode----------------------------*/
+			while(frmt[i]=='F' || frmt[i]=='N' || frmt[i]=='h' || frmt[i]=='l' || frmt[i]=='L')     //Set Flag Format
+				{	
+					switch(frmt[i])
+					{
+					case 'F' : Flag&=~STDI_NP;break;	//Clear Near Pointer in flag
+					case 'N' : Flag|= STDI_NP;break;	//set Near Pointer in flag					
+					case 'h' : Flag|= STDI_Mh;Flag&=~(STDI_Ml|STDI_ML);break;	//set 16-bit(short int)mode in flag
+					case 'l' : Flag|= STDI_Ml;Flag&=~(STDI_ML|STDI_Mh);break;	//set 32-bit(long int)mode in flag
+					case 'L' : Flag|= STDI_ML;Flag&=~(STDI_Mh|STDI_Ml);break;	//set 64-bit(long long int)mode in flag
+					}
+					i++;
+				}
+		  /*-----------------------%[w.d]c------------------*/
+			if(frmt[i]=='c')        	//%c
+				{
+					i++;//skip d or i
+					if((Flag & STDI_BC)==STDI_BC)buffer[b++]=' '; //Insert Blank
+					char arg;
+					arg = va_arg(ap,int);
+					for(k=1;k<w;k++)
+						buffer[b++]=' ';
+					buffer[b++]=arg;
+				}
+			/*-----------------------%[w.d]p------------------*/
+			if(frmt[i]=='p')        	//%c
+				{
+					i++;//skip d or i
+					char arg_str[150]="";
+					if((Flag & STDI_BC)==STDI_BC)buffer[b++]=' '; //Insert Blank
+					unsigned arg;
+					arg = va_arg(ap,unsigned);
+					__STRING_H_UPPER_CASE='T';// For upper case hex ABCDEF
+					itoa(arg,arg_str,16);
+					__STRING_H_UPPER_CASE='F';
+					int plen=strlen(arg_str);
+					int wordbit=0;
+					for(k=0;k<8-plen;(k++,wordbit++))buffer[b++]='0';
+					for(k=0;k<plen;(k++,wordbit++))
+					{
+						if(wordbit==4 && (Flag & STDI_NP)!=STDI_NP) buffer[b++]=':';
+						buffer[b++]=arg_str[k];
+					}					
+				}
+		  /*-----------------------%[w.d]d------------------*/
+			else if(frmt[i]=='d' || frmt[i]=='i' || frmt[i]=='u')        //%d
+				{					
+					i++;//skip d or i
+					if((Flag & STDI_BC)==STDI_BC)buffer[b++]=' '; //Insert Blank
+					int arg;
+					int k;
+					char arg_str[150]="";
+					arg = va_arg(ap,int); 					
+					if(frmt[i-1]=='u')
+						arg=(arg+0xffffffff)+1;//for remove negetive
+
+					if(arg<0) 
+					{
+						Flag = Flag|STDI_NG;	//set Negative Number in flag
+						arg*=-1;						
+					}
+					itoa(arg,arg_str,10);				
+					
+					int len=strlen(arg_str);
+					int LenZero=(d-len<0?0:d-len);//Number of Zero
+					int LenSpace= (w-(len+LenZero)<0?0:w-(len+LenZero));//Number Of Space					
+					
+					if(((Flag & STDI_SS)==STDI_SS || (Flag & STDI_NG)==STDI_NG) && (Flag & STDI_ZP)==STDI_ZP ) /* Corrected Bug Negative Value */
+						buffer[b++]=( (Flag & STDI_NG)==STDI_NG ? '-' : '+'); //Insert sign (+/-) note zero pade must be clear becuse of 0000-12 is not correct ===>-000012
+					
+					if((Flag & STDI_LA)!=STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++)//Insert Right Space
+								buffer[b++]=((Flag & STDI_ZP)==STDI_ZP ? '0' : ' ' );
+						}
+					
+					if(((Flag & STDI_SS)==STDI_SS || (Flag & STDI_NG)==STDI_NG) && (Flag & STDI_ZP)!=STDI_ZP )
+						buffer[b++]=( (Flag & STDI_NG)==STDI_NG ? '-' : '+'); //Insert sign (+/-) note zero pade must be clear becuse of [-    12] is not correct ===>[    -12]
+					
+					for(k=0;k<LenZero;k++)	       //Insert Zero
+						buffer[b++]='0';
+					for(k=0;k<len;k++)		       //Insert Character
+						buffer[b++]=arg_str[k];
+					if((Flag & STDI_LA)==STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++) //Insert Left Space
+								buffer[b++]=' ';
+						}
+				}
+		  /*-----------------------%[w.d]f ------------------*/
+			else if(frmt[i]=='f')
+				{
+					i++;//skip d or i					
+					if((Flag & STDI_BC)==STDI_BC)buffer[b++]=' '; //Insert Blank
+					double arg;
+					int k;
+					char BaseStr[150]="",ExpStr[38]="";
+					arg = va_arg(ap,double);					
+					if(arg<0) 
+					{
+						Flag = Flag|STDI_NG;	//set Negative Number in flag
+						arg*=-1;
+					}
+					int BaseNum=(int)arg;
+					//arg-=BaseNum
+
+					if(use_point=='F') d=DEFULT_FLOATING_ZERO;//if not use point[w.d]==>Exponent is defult value 					
+
+					float ExpNum=((arg-BaseNum)*(pow10w(d/*+1*/)));					
+				       //	arg*=d;Note (d+1) for reterive last digit for round					
+					itoa((int)ExpNum,ExpStr,10);//For Exponent	
+					itoa(BaseNum,BaseStr,10);//For Base
+					//puts(ExpStr);
+					//puts("\n");
+					//puts(BaseStr);
+					//puts("\n");
+					//printf("ExpNum=%d  %d",ExpNum,(int)((arg/*-BaseNum*/)*1000));  
+
+					int lenB=strlen(BaseStr);//Base len
+					int lenE=strlen(ExpStr);//Exponent len
+					int ExponentZero=(d-lenE>0?d-lenE:0);//Number of Exponent Zero					
+					int BaseSpace= (w-(ExponentZero+lenB+lenE)>0?w-(ExponentZero+lenB+lenE):0);//Number Of Space
+
+					if(((Flag & STDI_SS)==STDI_SS || (Flag & STDI_NG)==1) && (Flag & STDI_ZP)==STDI_ZP )buffer[b++]=( (Flag & STDI_NG)==STDI_NG ? '-' : '+'); //Insert sign (+/-) note zero pade must be clear becuse of 0000-12 is not correct ===>-000012
+					
+					if((Flag & STDI_LA)!=STDI_LA)
+						{
+							for(k=0;k<BaseSpace;k++)//Insert Right Space
+								buffer[b++]=((Flag & STDI_ZP)==STDI_ZP ? '0' : ' ' );
+						}
+
+					if(((Flag & STDI_SS)==STDI_SS || (Flag & STDI_NG)==1) && (Flag & STDI_ZP)!=STDI_ZP )buffer[b++]=( (Flag & STDI_NG)==STDI_NG ? '-' : '+'); //Insert sign (+/-) note zero pade must be clear becuse of 0000-12 is not correct ===>-000012
+					
+					for(k=0;k<lenB;k++)		       //Insert Base
+						buffer[b++]=BaseStr[k];
+					
+					if(d!=0 || ExponentZero!=0) buffer[b++]='.';
+
+					d-=1;
+					for(k=0;k<d;k++)	       		//Insert Exponent
+						buffer[b++]=ExpStr[k];
+					buffer[b++]=(ExpStr[k+1]<5 ? ExpStr[k] : ExpStr[k]+1);			//For rounding last digit[it was bug; and now slove with rounding last digit]
+					
+					for(k=0;k<ExponentZero;k++)	       //Insert Zero
+						buffer[b++]='0';
+
+					if((Flag & STDI_LA)==STDI_LA)
+						{
+							for(k=0;k<BaseSpace;k++) //Insert Left Space
+								buffer[b++]=' ';
+						}
+				}
+		  /*-----------------------%[w.d]S------------------*/
+			else if(frmt[i]=='S' || frmt[i]=='s')
+				{
+					i++;//skip S or sMAX_ARG_LEN
+					if((Flag & STDI_BC)==STDI_BC)buffer[b++]=' '; //Insert Blank
+					char* arg;
+					arg = va_arg(ap,char*);
+					int Len=strlen(arg);
+					int FinalLen=(w<Len && w!=0?w:Len);//Final Len
+					int LenSpace= (d-FinalLen<0?0:d-FinalLen);//Number Of Space
+					if((Flag & STDI_LA)!=STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++)//Insert Right Space
+								buffer[b++]=' ';
+						}
+					for(k=0;k<FinalLen;k++)		       //Insert Character
+						buffer[b++]=arg[k];
+					if((Flag & STDI_LA)==STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++) //Insert Left Space
+								buffer[b++]=' ';
+						}
+				}
+		  /*-----------------------%[w.d]X------------------*/
+			else if(frmt[i]=='x' || frmt[i]=='X')        //%X
+				{					
+					if(frmt[i]=='X')
+						__STRING_H_UPPER_CASE='T';// For upper case hex ABCDEF
+					else
+						__STRING_H_UPPER_CASE='F';// For upper case hex abcdef
+
+					i++;//skip d or i
+					if((Flag & STDI_BC)==STDI_BC)buffer[b++]=' '; //Insert Blank
+					int arg;
+					int k;
+					char arg_str[150]="";
+					arg = va_arg(ap,int);
+					itoa(arg,arg_str,16);
+					__STRING_H_UPPER_CASE='F';
+					int len=strlen(arg_str);
+					int LenZero=(d-len<0?0:d-len);//Number of Zero
+					int LenSpace= (w-(len+LenZero)<0?0:w-(len+LenZero));//Number Of Space
+					if((Flag & STDI_LA)!=STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++)//Insert Right Space
+								buffer[b++]=((Flag & STDI_ZP)==STDI_ZP ? '0' : ' ' );
+						}
+					for(k=0;k<LenZero;k++)	       //Insert Zero
+						buffer[b++]='0';
+					for(k=0;k<len;k++)		       //Insert Character
+						buffer[b++]=arg_str[k];
+					if((Flag & STDI_LA)==STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++) //Insert Left Space
+								buffer[b++]=' ';
+						}
+				}
+			 /*-----------------------%[w.d]o------------------*/
+			else if(frmt[i]=='o')        //%o
+				{					
+					i++;//skip d or i
+					if((Flag & STDI_BC)==STDI_BC)buffer[b++]=' '; //Insert Blank
+					int arg;
+					int k;
+					char arg_str[150]="";
+					arg = va_arg(ap,int);
+					itoa(arg,arg_str,8);					
+					int len=strlen(arg_str);
+					int LenZero=(d-len<0?0:d-len);//Number of Zero
+					int LenSpace= (w-(len+LenZero)<0?0:w-(len+LenZero));//Number Of Space
+					if((Flag & STDI_LA)!=STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++)//Insert Right Space
+								buffer[b++]=((Flag & STDI_ZP)==STDI_ZP ? '0' : ' ' );
+						}
+					for(k=0;k<LenZero;k++)	       //Insert Zero
+						buffer[b++]='0';
+					for(k=0;k<len;k++)		       //Insert Character
+						buffer[b++]=arg_str[k];
+					if((Flag & STDI_LA)==STDI_LA)
+						{
+							for(k=0;k<LenSpace;k++) //Insert Left Space
+								buffer[b++]=' ';
+						}
+				}
+			/*-----------------------%...------------------*/
+	       }
+	      else
+			{
+			buffer[b++]=frmt[i++];
+			buffer[b]='\x0';
+			}
+	   }
+	buffer[b]='\x0';
+//	 va_end(ap);
+	 return b;
+}
+
+int sprintf(unsigned char *buffer,const char *frmt,...)
+{		
+	/*int len;
+	va_list ap;
+	va_start(ap,(double) frmt);
+	len=vsprintf(buffer,frmt,&ap);
+	va_end(ap);
+	return len;*/
+	va_list args;
+	int n;
+
+	va_start(args, frmt);
+	n = vsprintf(buffer, frmt, args);
+	va_end(args);
+
+	return n;
+}
+
+int printf(const char *frmt,...)
+{
+	va_list ap;
+	char buffer[MAXLEN];
+	int len;	
+	va_start(ap, frmt);
+	len=vsprintf((unsigned char *)buffer,frmt,ap);
+	va_end(ap);
+	puts(buffer);
+	return len;    
+}
+
+int cprintf(char Color,const char *frmt,...)
+{
+	va_list ap;
+	char buffer[MAXLEN];
+	char OldColor=GetTextColor(); 
+	int len;	
+	va_start(ap, frmt);
+	len=vsprintf((unsigned char *)buffer,frmt,ap);
+	va_end(ap);	
+	textcolor(Color);
+	puts(buffer);
+	textcolor(OldColor);
+	return len;    
+}
+
+int vprintf(const char *frmt, va_list ap)
+{
+	char buffer[MAXLEN];
+	int len;
+	len=vsprintf((unsigned char *)buffer,frmt,ap);
+	puts(buffer);
+	return len;
+}
+
+/// <summary>		
+	///This Function Is Get Integer Number From Keyboard.			
+	///MaxLen:	For Maximum Len Of Number String.if MaxLen==1 then Maximum Length Of Number String   is Unlimit.
+	///IsSplitterReturn:	If Get Charachter Is Space Tab Return Number.
+	/// </summary>
+int GetIntegerNumber(unsigned short MaxLen,bool IsSplitterReturn)
+ {
+	 _StartLine=_cursor_x;
+	char ch=getch();
+	unsigned short GetLen=0;
+	char NumStr[150];
+	//printf("%d",ch);
+	while(ch==s_scanTable[sSpace] || ch==s_scanTable[sEnter] || ch==s_scanTable[sBackSpace])
+	{
+		ch=getch();
+	}
+	
+	if(ch=='-' || ch=='+' || ('0'<=ch && ch<='9'))	NumStr[GetLen++]=ch;
+
+	while((GetLen<MaxLen || MaxLen==0) && (ch=getch())!=s_scanTable[sEnter])
+	{
+		if(ch==s_scanTable[sBackSpace] && GetLen>0)
+			NumStr[--GetLen]=0;
+		else{
+			if('0'<=ch && ch<='9')	
+			{
+				NumStr[GetLen++]=ch;
+				NumStr[GetLen]=0;
+			}
+			if(IsSplitterReturn==true)
+			{
+				if(ch==s_scanTable[sSpace] || ch==s_scanTable[sTab] )break;
+			}
+		}
+
+		//printf("\nCount:%d\n%s ",GetLen,NumStr);
+	}
+	
+	if(GetLen>0)
+		return atoi(NumStr);
+	return 0;
+ } 
+
+/// <summary>		
+	///This Function Is Get Float Number From Keyboard.			
+	///MaxLen:	For Maximum Len Of Number String.if MaxLen==1 then Maximum Length Of Number String   is Unlimit.
+	///IsSplitterReturn:	If Get Charachter Is Space Tab Return Number.
+	/// </summary>
+float GetFloatNumber(unsigned short MaxLen,bool IsSplitterReturn)
+ {
+	_StartLine=_cursor_x;
+	char ch=getch();
+	unsigned short GetLen=0;
+	short Point=0;
+	char NumStr[150];   //Latest Step Is Convert To IntPart
+	char FloatPart[50]={0};
+	//printf("%d",ch);
+	while(ch==s_scanTable[sSpace] || ch==s_scanTable[sEnter] || ch==s_scanTable[sBackSpace])
+	{
+		ch=getch();
+	}
+	
+	if(ch=='-' || ch=='+' ||  ch=='.' || ('0'<=ch && ch<='9'))	NumStr[GetLen++]=ch;
+
+	while((GetLen<MaxLen || MaxLen==0) && (ch=getch())!=s_scanTable[sEnter])
+	{
+		if(ch==s_scanTable[sBackSpace] && GetLen>0)
+			NumStr[--GetLen]=0;
+		else{
+			if(('0'<=ch && ch<='9') ||  ch=='.')	
+			{
+				NumStr[GetLen++]=ch;
+				NumStr[GetLen]=0;
+			}
+			if(IsSplitterReturn==true)
+			{
+				if(ch==s_scanTable[sSpace] || ch==s_scanTable[sTab] )break;
+			}
+		}
+
+		//printf("\nCount:%d\n%s ",GetLen,NumStr);
+	}
+	
+	Point=StrFind(NumStr ,"."); 
+	if(Point==-1)
+	{
+		if(GetLen>0)
+			return atoi(NumStr);
+		else
+			return 0;
+	}	
+	else{
+		Strncpy(FloatPart ,(char *)&NumStr[Point+1] ,sizeof(FloatPart));
+		NumStr[Point]=0;		
+		//printf("\n:%s %s %d %d %f\n",NumStr,FloatPart ,atoi(FloatPart) , (unsigned int)pow10(strlen(FloatPart)),(float)6/10);
+		return (float) atoi(NumStr)+((float)atoi(FloatPart)/(unsigned int)pow10(strlen(FloatPart)) ); 				
+	}	
+ }
+/// <summary>		
+	///This Function Is Get String From Keyboard.			
+	///Buffer:	Place Of Memory To Store Charachters.
+	///MaxLen:	For Maximum Len Of Number String.if MaxLen==1 then Maximum Length Of Number String   is Unlimit.
+	///IsSplitterReturn:	If Get Charachter Is Space Tab Return Number.
+	/// </summary>
+char* GetString(char *Buffer ,unsigned short MaxLen,bool IsSplitterReturn)
+{
+	_StartLine=_cursor_x;
+	char ch=getch();
+	unsigned short GetLen=0;	
+
+	while(ch==s_scanTable[sSpace] || ch==s_scanTable[sEnter] || ch==s_scanTable[sBackSpace])
+	{
+		ch=getch();
+	}
+
+	Buffer[GetLen++]=ch;
+	Buffer[GetLen]=0;
+	while((GetLen<MaxLen || MaxLen==0) && (ch=getch())!=s_scanTable[sEnter])
+	{
+		if(ch==s_scanTable[sBackSpace] && GetLen>0)
+			Buffer[--GetLen]=0;
+		else{
+			if(ch >= ' ')//Any character greater than and including a space, is a printable character.
+			{			
+				Buffer[GetLen++]=ch;
+				Buffer[GetLen]=0;				
+			}
+			if(IsSplitterReturn==true)
+			{
+				if(ch==s_scanTable[sSpace] || ch==s_scanTable[sTab] )break;
+			}
+		}
+	}	
+	return Buffer;
+}
+
+//Important Comment For Floating point
+	/*double t=123.4567;
+	int fnum=(int)t;
+	volatile float snum=((t)-(fnum))*100000; 
+	printf("\nrr=%d",(int)snum);
+	printf("\nrr=%f",t);*/
+
+//
+///*****************************************************************************
+//Revised Jan 28, 2002
+//- changes to make characters 0x80-0xFF display properly
+//
+//Revised June 10, 2001
+//- changes to make vsprintf() terminate string with '\0'
+//
+//Revised May 12, 2000
+//- math in DO_NUM is now unsigned, as it should be
+//- %0 flag (pad left with zeroes) now works
+//- actually did some TESTING, maybe fixed some other bugs
+//
+//	name:	do_printf
+//	action:	minimal subfunction for ?printf, calls function
+//		'fn' with arg 'ptr' for each character to be output
+//	returns:total number of characters output
+//
+//	%[flag][width][.prec][mod][conv]
+//	flag:	-	left justify, pad right w/ blanks	DONE
+//		0	pad left w/ 0 for numerics		DONE
+//		+	always print sign, + or -		no
+//		' '	(blank)					no
+//		#	(???)					no
+//
+//	width:		(field width)				DONE
+//
+//	prec:		(precision)				no
+//
+//	conv:	d,i	decimal int				DONE
+//		u	decimal unsigned			DONE
+//		o	octal					DONE
+//		x,X	hex					DONE
+//		f,e,g,E,G float					no
+//		c	char					DONE
+//		s	string					DONE
+//		p	ptr					DONE
+//
+//	mod:	N	near ptr				DONE
+//		F	far ptr					no
+//		h	short (16-bit) int			DONE
+//		l	long (32-bit) int			DONE
+//		L	long long (64-bit) int			no
+//*****************************************************************************/
+///* flags used in processing format string */
+//#define		PR_LJ	0x01	/* left justify */
+//#define		PR_CA	0x02	/* use A-F instead of a-f for hex */
+//#define		PR_SG	0x04	/* signed numeric conversion (%d vs. %u) */
+//#define		PR_32	0x08	/* long (32-bit) numeric conversion */
+//#define		PR_16	0x10	/* short (16-bit) numeric conversion */
+//#define		PR_WS	0x20	/* PR_SG set and num was < 0 */
+//#define		PR_LZ	0x40	/* pad left with '0' instead of ' ' */
+//#define		PR_FP	0x80	/* pointers are far */
+//
+///* largest number handled is 2^32-1, lowest radix handled is 8.
+//2^32-1 in base 8 has 11 digits (add 5 for trailing NUL and for slop) */
+//#define		PR_BUFLEN	16
+//
+//int do_printf(const char *fmt, va_list args, fnptr_t fn, void *ptr)
+//{
+//	unsigned state, flags, radix, actual_wd, count, given_wd;
+//	unsigned char *where, buf[PR_BUFLEN];
+//	long num;
+//
+//	state = flags = count = given_wd = 0;
+///* begin scanning format specifier list */
+//	for(; *fmt; fmt++)
+//	{
+//		switch(state)
+//		{
+///* STATE 0: AWAITING % */
+//		case 0:
+//			if(*fmt != '%')	/* not %... */
+//			{
+//				fn(*fmt, &ptr);	/* ...just echo it */
+//				count++;
+//				break;
+//			}
+///* found %, get next char and advance state to check if next char is a flag */
+//			state++;
+//			fmt++;
+//			/* FALL THROUGH */
+///* STATE 1: AWAITING FLAGS (%-0) */
+//		case 1:
+//			if(*fmt == '%')	/* %% */
+//			{
+//				fn(*fmt, &ptr);
+//				count++;
+//				state = flags = given_wd = 0;
+//				break;
+//			}
+//			if(*fmt == '-')
+//			{
+//				if(flags & PR_LJ)/* %-- is illegal */
+//					state = flags = given_wd = 0;
+//				else
+//					flags |= PR_LJ;
+//				break;
+//			}
+///* not a flag char: advance state to check if it's field width */
+//			state++;
+///* check now for '%0...' */
+//			if(*fmt == '0')
+//			{
+//				flags |= PR_LZ;
+//				fmt++;
+//			}
+//			/* FALL THROUGH */
+///* STATE 2: AWAITING (NUMERIC) FIELD WIDTH */
+//		case 2:
+//			if(*fmt >= '0' && *fmt <= '9')
+//			{
+//				given_wd = 10 * given_wd +
+//					(*fmt - '0');
+//				break;
+//			}
+///* not field width: advance state to check if it's a modifier */
+//			state++;
+//			/* FALL THROUGH */
+///* STATE 3: AWAITING MODIFIER CHARS (FNlh) */
+//		case 3:
+//			if(*fmt == 'F')
+//			{
+//				flags |= PR_FP;
+//				break;
+//			}
+//			if(*fmt == 'N')
+//				break;
+//			if(*fmt == 'l')
+//			{
+//				flags |= PR_32;
+//				break;
+//			}
+//			if(*fmt == 'h')
+//			{
+//				flags |= PR_16;
+//				break;
+//			}
+///* not modifier: advance state to check if it's a conversion char */
+//			state++;
+//			/* FALL THROUGH */
+///* STATE 4: AWAITING CONVERSION CHARS (Xxpndiuocs) */
+//		case 4:
+//			where = buf + PR_BUFLEN - 1;
+//			*where = '\0';
+//			switch(*fmt)
+//			{
+//			case 'X':
+//				flags |= PR_CA;
+//				/* FALL THROUGH */
+///* xxx - far pointers (%Fp, %Fn) not yet supported */
+//			case 'x':
+//			case 'p':
+//			case 'n':
+//				radix = 16;
+//				goto DO_NUM;
+//			case 'd':
+//			case 'i':
+//				flags |= PR_SG;
+//				/* FALL THROUGH */
+//			case 'u':
+//				radix = 10;
+//				goto DO_NUM;
+//			case 'o':
+//				radix = 8;
+///* load the value to be printed. l=long=32 bits: */
+//DO_NUM:				if(flags & PR_32)
+//					num = va_arg(args, unsigned long);
+///* h=short=16 bits (signed or unsigned) */
+//				else if(flags & PR_16)
+//				{
+//					if(flags & PR_SG)
+//						num = va_arg(args, short);
+//					else
+//						num = va_arg(args, unsigned short);
+//				}
+///* no h nor l: sizeof(int) bits (signed or unsigned) */
+//				else
+//				{
+//					if(flags & PR_SG)
+//						num = va_arg(args, int);
+//					else
+//						num = va_arg(args, unsigned int);
+//				}
+///* take care of sign */
+//				if(flags & PR_SG)
+//				{
+//					if(num < 0)
+//					{
+//						flags |= PR_WS;
+//						num = -num;
+//					}
+//				}
+///* convert binary to octal/decimal/hex ASCII
+//OK, I found my mistake. The math here is _always_ unsigned */
+//				do
+//				{
+//					unsigned long temp;
+//
+//					temp = (unsigned long)num % radix;
+//					where--;
+//					if(temp < 10)
+//						*where = temp + '0';
+//					else if(flags & PR_CA)
+//						*where = temp - 10 + 'A';
+//					else
+//						*where = temp - 10 + 'a';
+//					num = (unsigned long)num / radix;
+//				}
+//				while(num != 0);
+//				goto EMIT;
+//			case 'c':
+///* disallow pad-left-with-zeroes for %c */
+//				flags &= ~PR_LZ;
+//				where--;
+//				*where = (unsigned char)va_arg(args,unsigned char);
+//				actual_wd = 1;
+//				goto EMIT2;
+//			case 's':
+///* disallow pad-left-with-zeroes for %s */
+//				flags &= ~PR_LZ;
+//				where = va_arg(args, unsigned char *);
+//EMIT:
+//				actual_wd = strlen(where);
+//				if(flags & PR_WS)
+//					actual_wd++;
+///* if we pad left with ZEROES, do the sign now */
+//				if((flags & (PR_WS | PR_LZ)) ==
+//					(PR_WS | PR_LZ))
+//				{
+//					fn('-', &ptr);
+//					count++;
+//				}
+///* pad on left with spaces or zeroes (for right justify) */
+//EMIT2:				if((flags & PR_LJ) == 0)
+//				{
+//					while(given_wd > actual_wd)
+//					{
+//						fn(flags & PR_LZ ? '0' :
+//							' ', &ptr);
+//						count++;
+//						given_wd--;
+//					}
+//				}
+///* if we pad left with SPACES, do the sign now */
+//				if((flags & (PR_WS | PR_LZ)) == PR_WS)
+//				{
+//					fn('-', &ptr);
+//					count++;
+//				}
+///* emit string/char/converted number */
+//				while(*where != '\0')
+//				{
+//					fn(*where++, &ptr);
+//					count++;
+//				}
+///* pad on right with spaces (for left justify) */
+//				if(given_wd < actual_wd)
+//					given_wd = 0;
+//				else given_wd -= actual_wd;
+//				for(; given_wd; given_wd--)
+//				{
+//					fn(' ', &ptr);
+//					count++;
+//				}
+//				break;
+//			default:
+//				break;
+//			}
+//		default:
+//			state = flags = given_wd = 0;
+//			break;
+//		}
+//	}
+//	return count;
+//}
+////#if 0 /* testing */
+///*****************************************************************************
+//SPRINTF
+//*****************************************************************************/
+//int vsprintf_help(unsigned c, void **ptr)
+//{
+//	char *dst;
+//
+//	dst = *ptr;
+//	*dst++ = c;
+//	*ptr = dst;
+//	return 0 ;
+//}
+///*****************************************************************************
+//*****************************************************************************/
+//int vsprintf(char *buffer, const char *fmt, va_list args)
+//{
+//	int ret_val;
+//
+//	ret_val = do_printf(fmt, args, vsprintf_help, (void *)buffer);
+//	buffer[ret_val] = '\0';
+//	return ret_val;
+//}
+///*****************************************************************************
+//*****************************************************************************/
+//int sprintf(char *buffer, const char *fmt, ...)
+//{
+//	va_list args;
+//	int ret_val;
+//
+//	va_start(args, fmt);
+//	ret_val = vsprintf(buffer, fmt, args);
+//	va_end(args);
+//	return ret_val;
+//}
+///*****************************************************************************
+//PRINTF
+//You must write your own putchar()
+//*****************************************************************************/
+//int vprintf_help(unsigned c, void **ptr)
+//{
+//	putch(c);
+//	return 0 ;
+//}
+///*****************************************************************************
+//*****************************************************************************/
+//int vprintf(const char *fmt, va_list args)
+//{
+//	return do_printf(fmt, args, vprintf_help, NULL);
+//}
+///*****************************************************************************
+//*****************************************************************************/
+//int printf(const char *fmt, ...)
+//{
+//	va_list args;
+//	int ret_val;
+//
+//	va_start(args, fmt);
+//	ret_val = vprintf(fmt, args);
+//	va_end(args);
+//	return ret_val;
+//}
+

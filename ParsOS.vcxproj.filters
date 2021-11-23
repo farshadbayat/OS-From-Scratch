@@ -1,0 +1,335 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\kernel">
+      <UniqueIdentifier>{8c9d1d72-0612-462a-b1d0-77f2c5bebcf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Image">
+      <UniqueIdentifier>{68aab118-9356-4e6e-b3fc-75371d511743}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="output">
+      <UniqueIdentifier>{b669eeb0-e99c-4007-aebf-15a3895b2b21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library">
+      <UniqueIdentifier>{9d5d6171-0c20-40ba-966d-e1f903ce9f4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Device">
+      <UniqueIdentifier>{33110401-0143-424d-964e-d67519c6a67b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Device\NIC">
+      <UniqueIdentifier>{acda8bcc-1cef-441e-b423-b4bf579204cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\GCC LIB">
+      <UniqueIdentifier>{cf921f20-6525-4512-acb7-bece077248d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\OS LIB">
+      <UniqueIdentifier>{ce3f20e1-1d56-4a27-ac0c-ff506d3addce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\DEV LIB">
+      <UniqueIdentifier>{7b0ad153-a911-4ee1-96a4-cc462c639d4c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\CKernel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\LIBC.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\LIBCPP.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\gdt.c">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="source\idt.c">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="source\irq.c">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="source\isrs.c">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="source\task.c">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\COMPONENT1.CPP">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GraphicTheme.C">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="source\library\VBE.CPP">
+      <Filter>Library\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GCCLibrary\CONIO.C">
+      <Filter>Library\GCC LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GCCLibrary\CTYPE.C">
+      <Filter>Library\GCC LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GCCLibrary\MATH.C">
+      <Filter>Library\GCC LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GCCLibrary\MEM.C">
+      <Filter>Library\GCC LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GCCLibrary\STDIO.C">
+      <Filter>Library\GCC LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GCCLibrary\STRING.C">
+      <Filter>Library\GCC LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\GCCLibrary\TIME.C">
+      <Filter>Library\GCC LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\COLOR.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\COMPONENT.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\CONSOLE.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\DRAW2D.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\DRAW3D.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\FAT.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\FONT.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\FS.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\ImageBMP.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\SYSTEM.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\OSLibrary\ZFS.C">
+      <Filter>Library\OS LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\CMOS.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\DEV.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\GRAPHICS.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\HDDIO.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\IDE.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\IO.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\KEYBOARD.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\MMU.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\MOUSE.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\PCI.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\PCNET32.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\PNP.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\SERIAL.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\SHEET.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\SOUND.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Library\DEVLibrary\TIMER.C">
+      <Filter>Library\DEV LIB</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source\bootsect.asm">
+      <Filter>Source Files\kernel</Filter>
+    </None>
+    <None Include="source\start.asm">
+      <Filter>Source Files\kernel</Filter>
+    </None>
+    <None Include="source\include\nasm.inc">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="app.config">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="output\EyeOS.img">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="source\Resource File\File Allocation Table - Wikipedia, the free encyclopedia.mht">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="source\Resource File\gdt.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Help and Old Code To New version.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="source\link.ld">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="source\Makefile">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="tmp.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="source\PARSOS.IMG">
+      <Filter>output</Filter>
+    </None>
+    <None Include="source\Library\DEV.C1">
+      <Filter>Library\Device</Filter>
+    </None>
+    <None Include="source\Library\PCNET32.C1">
+      <Filter>Library\Device\NIC</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\include\CMOS.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\COMPONENT.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\COMPONENT1.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\CONIO.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\CONSOLE.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\CTYPE.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\DEV.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\DRAW2D.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\DRAW3D.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\ETHERNET.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\FAT.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\FONT.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\FS.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\GRAPHICS.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\HDDIO.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\ImageBMP.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\IO.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\KEYBOARD.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\MATH.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\MEM.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\MMU.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\MOUSE.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\PCI.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\PCNET32.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\PNP.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\SERIAL.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\SHEET.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\SOUND.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\STDARG.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\STDIO.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\STRING.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\SYSTEM.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\TIME.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\include\VBE.H">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\COLOR.H">
+      <Filter>Header Files\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Include\IMAGE.H">
+      <Filter>Header Files\Image</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

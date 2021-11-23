@@ -1,0 +1,1115 @@
+From: <Saved by Windows Internet Explorer 7>
+Subject: Bona Fide OS Development - Protected Mode
+Date: Mon, 19 Jan 2009 22:52:45 +0330
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----=_NextPart_000_0019_01C97A88.A4AFDEE0"
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.3138
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS Development - Protected Mode.mht
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" =
+"http://www.w3c.org/TR/1999/REC-html401-19991224/loose.dtd">
+<HTML><HEAD><TITLE>Bona Fide OS Development - Protected Mode</TITLE>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META=20
+content=3D"osdev,os development, os design, operating system, tutorial, =
+documents,  bochs, x86, intel, docs, system programming, programming, =
+forum, chat"=20
+name=3Dkeywords>
+<META=20
+content=3D"The place to go for OS Development related research. IRC =
+Chat, Forum, Tutorials, Documents, &amp; Downloads."=20
+name=3Ddescription><LINK href=3D"http://www.osdever.net/style.css" =
+type=3Dtext/css=20
+rel=3Dstylesheet>
+<META content=3D"MSHTML 6.00.6000.20591" name=3DGENERATOR></HEAD>
+<BODY>
+<DIV id=3Dheader>
+<TABLE cellSpacing=3D0 cellPadding=3D0 width=3D"100%">
+  <TBODY>
+  <TR>
+    <TD><A=20
+      style=3D"BORDER-TOP-WIDTH: 0px; BORDER-LEFT-WIDTH: 0px; =
+BORDER-BOTTOM-WIDTH: 0px; BORDER-RIGHT-WIDTH: 0px"=20
+      href=3D"http://www.osdever.net/"><IMG alt=3D"BonaFide OS =
+Development"=20
+      src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected Mode.mht!http://www.osdever.net/bflogo.png"=20
+      border=3D0></A></TD>
+    <TD align=3Dmiddle>
+      <SCRIPT type=3Dtext/javascript><!--=0A=
+google_ad_client =3D "pub-5517142326360907";=0A=
+google_alternate_color =3D "FFFFFF";=0A=
+google_ad_width =3D 468;=0A=
+google_ad_height =3D 15;=0A=
+google_ad_format =3D "468x15_0ads_al";=0A=
+google_ad_channel =3D"5627983059";=0A=
+google_color_border =3D "FFFFFF";=0A=
+google_color_bg =3D "FFFFFF";=0A=
+google_color_link =3D "000000";=0A=
+google_color_url =3D "FFFFFF";=0A=
+google_color_text =3D "000000";=0A=
+//--></SCRIPT>
+
+      <SCRIPT src=3D"" type=3Dtext/javascript>=0A=
+</SCRIPT>
+    </TD></TR></TBODY></TABLE></DIV>
+<DIV id=3Dtopmenu>
+<UL>
+  <LI><A title=3D"BF Home Page" =
+href=3D"http://www.osdever.net/index.php">BF=20
+  Home</A> </LI>
+  <LI><A title=3D"BF's Goal" =
+href=3D"http://www.osdever.net/goal.php">The Goal=20
+  </A></LI>
+  <LI><A title=3D"How you can Help BF" =
+href=3D"http://www.osdever.net/help.php">How=20
+  to Help </A></LI>
+  <LI><A title=3D"Those that have donated to BF"=20
+  href=3D"http://www.osdever.net/contributors.php">Contributors</A> =
+</LI>
+  <LI><A title=3D"Email us" =
+href=3D"http://www.osdever.net/contact.php">Contact BF=20
+  </A></LI></UL></DIV><TD valign=3D"top" width=3D"150">
+<TABLE class=3Dmenu cellSpacing=3D3 cellPadding=3D0 width=3D150>
+  <UL>
+    <LI><A =
+href=3D"http://www.osdever.net/tutorials.php?cat=3D0&amp;sort=3D1"><IMG=20
+    height=3D16 alt=3D[Tuts]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected Mode.mht!http://www.osdever.net/images/tuts.png" =
+
+    width=3D16 border=3D0> Tutorials </A>
+    <LI><A =
+href=3D"http://www.osdever.net/documents.php?cat=3D0&amp;sort=3D1"><IMG=20
+    height=3D16 alt=3D[Docs]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected Mode.mht!http://www.osdever.net/images/docs.png" =
+
+    width=3D16 border=3D0> Documents </A>
+    <LI><A href=3D"http://www.osdever.net/downloads.php"><IMG =
+height=3D16 alt=3D[DLs]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected Mode.mht!http://www.osdever.net/images/dl.png"=20
+    width=3D16 border=3D0> Downloads </A>
+    <LI><A href=3D"http://www.osdever.net/books.php"><IMG height=3D16 =
+alt=3D[Books]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected =
+Mode.mht!http://www.osdever.net/images/books.png"=20
+    width=3D16 border=3D0> Books </A>
+    <LI><A href=3D"http://www.osdever.net/links.php"><IMG height=3D16 =
+alt=3D[Links]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected =
+Mode.mht!http://www.osdever.net/images/links.png"=20
+    width=3D16 border=3D0> Links </A>
+    <LI><A href=3D"http://www.osdever.net/search/"><IMG height=3D16 =
+alt=3D[Search]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected =
+Mode.mht!http://www.osdever.net/images/search.png"=20
+    width=3D16 border=3D0> Search </A>
+    <LI><A href=3D"http://www.frappr.com/osdever"><IMG height=3D16 =
+alt=3D[frappr]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected =
+Mode.mht!http://www.osdever.net/images/forum.png"=20
+    width=3D16 border=3D0> Frappr Map</A>=20
+    <LI><A href=3D"http://www.osdever.net/chat.php"><IMG height=3D16 =
+alt=3D[frappr]=20
+    src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected Mode.mht!http://www.osdever.net/images/chat.png" =
+
+    width=3D16 border=3D0> Chat</A>=20
+    <UL></UL></LI>
+    <TBODY>
+    <TR>
+      <TD>
+        <CENTER>
+        <SCRIPT type=3Dtext/javascript><!--=0A=
+google_ad_client =3D "pub-5517142326360907";=0A=
+google_ad_width =3D 120;=0A=
+google_ad_height =3D 600;=0A=
+google_ad_format =3D "120x600_as";=0A=
+google_ad_type =3D "text_image";=0A=
+google_ad_channel =3D"4954342782";=0A=
+google_color_border =3D ["000000","333333"];=0A=
+google_color_bg =3D ["FFFFFF","000000"];=0A=
+google_color_link =3D ["333333","FFFFFF"];=0A=
+google_color_url =3D ["FFFFFF","999999"];=0A=
+google_color_text =3D ["000000","CCCCCC"];=0A=
+//--></SCRIPT>
+
+        <SCRIPT src=3D"" type=3Dtext/javascript>=0A=
+</SCRIPT>
+        </CENTER></TD></TR>
+    <UL></UL></UL></TABLE></TD><TD valign=3D"top" width=3D"90%">
+<TABLE class=3Dmain height=3D"100%" cellPadding=3D15 width=3D"100%" =
+border=3D0>
+  <TBODY>
+  <TR>
+    <TD vAlign=3Dtop>
+      <H1>Protected Mode</H1>
+      <H2>By Chris Giese</H2>
+      <H2>What is Protected Mode?</H2>
+      <P>The 8088 CPU used in the original IBM PC was not very scalable. =
+In=20
+      particular, there was no easy way to access more than 1 megabyte =
+of=20
+      physical memory. To get around this while allowing backward =
+compatability,=20
+      Intel designed the 80286 CPU with two modes of operation: <I>real=20
+      mode</I>, in which the '286 acts like a fast 8088, and =
+<I>protected=20
+      mode</I> (now called 16-bit protected mode). Protected mode allows =
+
+      programs to access more than 1 megabyte of physical memory, and =
+protects=20
+      against misuse of memory (i.e. programs can't execute a data =
+segment, or=20
+      write into a code segment). An improved version, 32-bit protected =
+mode,=20
+      first appeared on the '386 CPU.</P>
+      <H2>How do Real Mode and Protected Mode Differ?</H2>
+      <P>Table 1: differences between real- and protected modes.</P>
+      <TABLE border=3D0>
+        <TBODY>
+        <TR>
+          <TD></TD>
+          <TD><B>Real Mode</B></TD>
+          <TD><B>16-bit Protected Mode</B></TD>
+          <TD><B>32-bit Protected Mode</B></TD></TR>
+        <TR>
+          <TD><B>Segment base address</B></TD>
+          <TD>20-bit (1M byte range) =3D 16 * segment register</TD>
+          <TD>24-bit (16M byte range), from <I>descriptor</I></TD>
+          <TD>32-bit (4G byte range), from <I>descriptor</I></TD></TR>
+        <TR>
+          <TD><B>Segment size (limit)</B></TD>
+          <TD>16-bit, 64K bytes (fixed)</TD>
+          <TD>16-bit, 1-64K bytes</TD>
+          <TD>20-bit, 1-1M bytes or 4K-4G bytes</TD></TR>
+        <TR>
+          <TD><B>Segment protection</B></TD>
+          <TD>no</TD>
+          <TD>yes</TD>
+          <TD>yes</TD></TR>
+        <TR>
+          <TD><B>Segment register</B></TD>
+          <TD>segment base adr / 16</TD>
+          <TD><I>selector</I></TD>
+          <TD><I>selector</I></TD></TR></TBODY></TABLE>
+      <H2>I thought protected mode didn't use segmented memory...</H2>
+      <P>The segments are still there, but in 32-bit protected mode, you =
+can set=20
+      the segment limit to 4G bytes. This is the maximum amount of =
+physical=20
+      memory addressable by a CPU with a 32-bit address bus. Limit-wise, =
+the=20
+      segment then "disappears" (though other protection mechanisms =
+remain in=20
+      effect). This reason alone makes 32-bit protected mode =
+popular.</P>
+      <H2>What's a descriptor?</H2>
+      <P>In real mode, there is little to know about the segments. Each =
+is 64K=20
+      bytes in size, and you can do with the segment what you wish: =
+store data=20
+      in it, put your stack there, or execute code stored in the =
+segment. The=20
+      base address of the segment is simply 16 times the value in one of =
+the=20
+      segment registers.</P>
+      <P>In protected mode, besides the segment base address, we also =
+need the=20
+      segment size (limit) and some flags indicating what the segment is =
+used=20
+      for. This information goes into an 8-byte data structure called a=20
+      <I>descriptor</I>:</P>
+      <P>Table 2: code/data segment descriptor.</P>
+      <TABLE cellSpacing=3D2 cellPadding=3D2 border=3D1>
+        <TBODY>
+        <TR>
+          <TD>Lowest byte</TD>
+          <TD>Byte 1</TD>
+          <TD>Byte 2</TD>
+          <TD>Byte 3</TD>
+          <TD>Byte 4</TD>
+          <TD>Byte 5</TD>
+          <TD>Byte 6</TD>
+          <TD>Highest byte</TD></TR>
+        <TR>
+          <TD>Limit 7:0</TD>
+          <TD>Limit 15:8</TD>
+          <TD>Base 7:0</TD>
+          <TD>Base 15:8</TD>
+          <TD>Base 23:16</TD>
+          <TD>Access</TD>
+          <TD>Flags, Limit 19:16</TD>
+          <TD>Base 31:24</TD></TR></TBODY></TABLE>
+      <P>This is a 32-bit ('386) descriptor. 16-bit ('286) descriptors =
+have to=20
+      top two bytes (Limit 19:16, Flags, and Base 31:24) set to zero. =
+The Access=20
+      byte indicates segment usage (data segment, stack segment, code =
+segment,=20
+      etc.):</P>
+      <P>Table 3: access byte of code/data segment descriptor.</P>
+      <TABLE cellSpacing=3D2 cellPadding=3D2 border=3D1>
+        <TBODY>
+        <TR>
+          <TD>Highest bit</TD>
+          <TD>Bits 6, 5</TD>
+          <TD>Bit 4</TD>
+          <TD>Bits 3</TD>
+          <TD>Bit 2</TD>
+          <TD>Bit 1</TD>
+          <TD>Lowest bit</TD></TR>
+        <TR>
+          <TD>Present</TD>
+          <TD>Privilege</TD>
+          <TD><B>1</B></TD>
+          <TD>Executable</TD>
+          <TD>Expansion direction/ conforming</TD>
+          <TD>Writable/ readable</TD>
+          <TD>Accessed</TD></TR></TBODY></TABLE>
+      <UL>
+        <LI>Present bit. Must be set to one to permit segment access.=20
+        <LI>Privilege. Zero is the highest level of privilege (<I>Ring =
+0</I>),=20
+        three is the lowest (<I>Ring 3</I>).=20
+        <LI>Executable bit. If one, this is a code segment, otherwise =
+it's=20
+        astack/data segment.=20
+        <LI>Expansion direction (stack/data segment). If one, segment =
+grows=20
+        downward, and offsets within the segment must be <B>greater =
+than</B> the=20
+        limit.=20
+        <LI>Conforming (code segment). Privilege-related.=20
+        <LI>Writable (stack/data segment). If one, segment can be =
+written to.=20
+        <LI>Readable (code segment). If one, segment can be read from. =
+(Code=20
+        segments are not writable.)=20
+        <LI>Accessed. This bit is set whenever the segment is read from =
+or=20
+        written to.</LI></UL>
+      <P>The 4-bit Flags value is non-zero only for 32-bit segments:</P>
+      <P>Table 4: flags nybble.</P>
+      <TABLE cellSpacing=3D2 cellPadding=3D2 border=3D1>
+        <TBODY>
+        <TR>
+          <TD>Highest bit</TD>
+          <TD>Bit 6</TD>
+          <TD>Bit 5</TD>
+          <TD>Bit 4</TD></TR>
+        <TR>
+          <TD>Granularity</TD>
+          <TD>Default Size</TD>
+          <TD><B>0</B></TD>
+          <TD><B>0</B></TD></TR></TBODY></TABLE>
+      <P>The Granularity bit indicates if the segment limit is in units =
+of 4K=20
+      byte pages (G=3D1) or if the limit is in units of bytes =
+(G=3D0).</P>
+      <P>For stack segments, the Default Size bit is also known as the B =
+(Big)=20
+      bit, and controls whether 16- or 32-bit values are pushed and =
+popped. For=20
+      code segments, the D bit indicates whether instructions will =
+operate on=20
+      16-bit (D=3D0) or 32-bit (D=3D1) quantities by default. To expand =
+upon this:=20
+      when the D bit is set, the segment is <I>USE32</I>, named after =
+the=20
+      assembler directive of the same name. The following sequence of =
+hex bytes:<PRE>B8 90 90 90 90</PRE>will be treated by the CPU as a =
+32-bit=20
+      instruction, and will disassemble as<PRE>mov eax, =
+90909090h</PRE>In a 16-bit (<I>USE16</I>) code segment, the=20
+      same sequence of bytes would be equivalent to <PRE>mov ax,9090h
+nop
+nop</PRE>Two special opcode bytes called the <I>Operand Size Prefix</I>=20
+      and the <I>Address Length Prefix</I> reverse the sense of the D =
+bit for=20
+      the instruction destination and source, respectively. These =
+prefixes=20
+      affect only the instruction that immediately follows them.=20
+      <P></P>
+      <P>Bit 4 of the Access byte is set to one for code or data/stack =
+segments.=20
+      If this bit is zero, you have a <I>system segment</I>. These come =
+in=20
+      several varieties:</P>
+      <UL>
+        <LI><I>Task State Segment (TSS)</I>. These are used to simplify=20
+        multitasking. The '386 or higher CPU has four sub-types of TSS.=20
+        <LI><I>Local Descriptor Table (LDT)</I>. Tasks can store their =
+own=20
+        private descriptors here, instead of the GDT.=20
+        <LI><I>Gates</I>. These control CPU transitions from one level =
+of=20
+        privilege to another. Gate descriptors have a different format =
+than=20
+        other descriptors:</LI></UL>
+      <P>Table 5: gate descriptor.</P>
+      <TABLE cellSpacing=3D2 cellPadding=3D2 border=3D1>
+        <TBODY>
+        <TR>
+          <TD>Lowest byte</TD>
+          <TD>Byte 1</TD>
+          <TD>Byte 2</TD>
+          <TD>Byte 3</TD>
+          <TD>Byte 4</TD>
+          <TD>Byte 5</TD>
+          <TD>Byte 6</TD>
+          <TD>Highest byte</TD></TR>
+        <TR>
+          <TD>Offset 7:0</TD>
+          <TD>Offset 15:8</TD>
+          <TD>Selector 7:0</TD>
+          <TD>Selector 15:8</TD>
+          <TD>Word Count 4:0</TD>
+          <TD>Access</TD>
+          <TD>Offset 23:16</TD>
+          <TD>Offset 31:24</TD></TR></TBODY></TABLE>
+      <P>Note the Selector field. Gates work through indirection, and =
+require a=20
+      separate code or TSS descriptor to function.</P>
+      <P>Table 6: access byte of system segment descriptor.</P>
+      <TABLE cellSpacing=3D2 cellPadding=3D2 border=3D1>
+        <TBODY>
+        <TR>
+          <TD>Highest bit</TD>
+          <TD>Bits 6, 5</TD>
+          <TD>Bit 4</TD>
+          <TD>Bits 3, 2, 1, 0</TD></TR>
+        <TR>
+          <TD>Present</TD>
+          <TD>Privilege</TD>
+          <TD><B>0</B></TD>
+          <TD>Type</TD></TR></TBODY></TABLE>
+      <P>Table 7: System segment types.</P>
+      <TABLE cellSpacing=3D2 cellPadding=3D2 border=3D1>
+        <TBODY>
+        <TR>
+          <TD>Type</TD>
+          <TD>Segment function</TD>
+          <TD></TD>
+          <TD>Type</TD>
+          <TD>Segment function</TD></TR>
+        <TR>
+          <TD>0</TD>
+          <TD>(invalid)</TD>
+          <TD></TD>
+          <TD>8</TD>
+          <TD>(invalid)</TD></TR>
+        <TR>
+          <TD>1</TD>
+          <TD>Available '286 TSS</TD>
+          <TD></TD>
+          <TD>9</TD>
+          <TD>Available '386 TSS</TD></TR>
+        <TR>
+          <TD>2</TD>
+          <TD>LDT</TD>
+          <TD></TD>
+          <TD>10</TD>
+          <TD>(undefined, reserved)</TD></TR>
+        <TR>
+          <TD>3</TD>
+          <TD>Busy '286 TSS</TD>
+          <TD></TD>
+          <TD>11</TD>
+          <TD>Busy '386 TSS</TD></TR>
+        <TR>
+          <TD>4</TD>
+          <TD>'286 Call Gate</TD>
+          <TD></TD>
+          <TD>12</TD>
+          <TD>'386 Call Gate</TD></TR></TR>
+        <TR>
+          <TD>5</TD>
+          <TD>Task Gate</TD>
+          <TD></TD>
+          <TD>13</TD>
+          <TD>(undefined, reserved)</TD></TR>
+        <TR>
+          <TD>6</TD>
+          <TD>'286 Interrupt Gate</TD>
+          <TD></TD>
+          <TD>14</TD>
+          <TD>'386 Interrupt Gate</TD></TR></TR>
+        <TR>
+          <TD>7</TD>
+          <TD>'286 Trap Gate</TD>
+          <TD></TD>
+          <TD>15</TD>
+          <TD>'386 Trap Gate</TD></TR></TR></TBODY></TABLE>
+      <P>Whew! For now, just remember that TSSes, LDTs, and gates are =
+the three=20
+      main types of system segment.</P>
+      <H2>Where are the descriptors?</H2>
+      <P>They are stored in a table in memory: the <I>Global Descriptor =
+Table=20
+      (GDT)</I>, <I>Interrupt Descriptor Table (IDT)</I>, or one of the =
+Local=20
+      Descriptor Tables. The CPU contains three registers: GDTR, which =
+must=20
+      point to the GDT, IDTR, which must point to the IDT (if interrupts =
+are=20
+      used), and LDTR, which must point to the LDT (if the LDT is used). =
+Each of=20
+      these tables can hold up to 8192 descriptors.</P>
+      <H2>What's a selector?</H2>
+      <P>In protected mode, the segment registers contain =
+<I>selectors</I>,=20
+      which index into one of the descriptor tables. Only the top 13 =
+bits of the=20
+      selector are used for this index. The next lower bit choses =
+between the=20
+      GDT and LDT. The lowest two bits of the selector set a privilege=20
+value.</P>
+      <H2>How do I enter protected mode?</H2>
+      <P>Entering protected mode is actually rather simple, and is is =
+described=20
+      in many other tutorials. You must:</P>
+      <UL>
+        <LI>create a valid Global Descriptor Table (GDT),=20
+        <LI>(optional) create a valid Interrupt Descriptor Table (IDT),=20
+        <LI>disable interrupts,=20
+        <LI>point GDTR to your GDT,=20
+        <LI>(optional) point IDTR to your IDT,=20
+        <LI>set the PE bit in the MSW register,=20
+        <LI>do a far jump (load both CS and IP/EIP) to enter protected =
+mode=20
+        (load CS with the code segment selector),=20
+        <LI>load the DS and SS registers with the data/stack segment =
+selector,=20
+        <LI>set up a pmode stack,=20
+        <LI>(optional) enable interrupts.</LI></UL>
+      <H2>How do I get back to Real Mode?</H2>
+      <P>On the '386:=20
+      <UL>
+        <LI>disable interrupts,=20
+        <LI>do a far jump to a 16-bit code segment (i.e. switch briefly =
+to=20
+        16-bit pmode),=20
+        <LI>load SS with a selector to a 16-bit data/stack segment,=20
+        <LI>clear the PE bit,=20
+        <LI>do a far jump to a real-mode address,=20
+        <LI>load the DS, ES, FS, GS, and SS registers with real-mode =
+values,=20
+        <LI>(optional)set IDTR to real-mode values (base 0, limit =
+0xFFFF),=20
+        <LI>re-enable interrupts.</LI></UL>
+      <P>Before returning to real mode, CS and SS must contain selectors =
+
+      pointing to descriptors that are "appropriate to real mode". These =
+have a=20
+      limit of 64K bytes, are byte-granular (Flags nybble=3D0), =
+expand-up,=20
+      writable (data/stack segment only), and present (Access=20
+byte=3D1xx1001x).</P>
+      <P>On the '286, you can't simply clear the PE bit to leave =
+protected mode.=20
+      The only way out is to reset the CPU. This can be done by telling =
+the=20
+      keyboard controller to pulse the reset line of the CPU, or it can =
+be done=20
+      by <I>triple-faulting</I> the CPU (see Robert Collins' web site: =
+<A=20
+      href=3D"http://www.x86.org/">http://www.x86.org/</A>).</P>
+      <H2>What pitfalls have you encountered?</H2>
+      <UL>
+        <LI>You must pay extreme attention to detail here. One wrong bit =
+will=20
+        make things fail. Protected mode errors often triple-fault the =
+CPU,=20
+        making it reset itself. Be prepared to see this happen again and =
+again.=20
+        <LI>Most library routines probably won't work. =
+<TT>printf()</TT>, for=20
+        example, won't work because it evenutally calls either a DOS or =
+BIOS=20
+        service to put text on the screen. Unless you have a <I>DOS=20
+        extender</I>, these services are unavailable in protected mode. =
+I had=20
+        good luck using <TT>sprintf()</TT> to put formatted text in a =
+buffer,=20
+        which I then wrote to the screen with my own protected-mode =
+routine.=20
+        <LI>Before clearing the PE bit, the segment registers =
+<B>must</B> point=20
+        to descriptors that are appropriate to real mode. This means a =
+limit of=20
+        exactly 0xFFFF (see other restrictions above). One of my demo =
+programs=20
+        had ES pointing to a text-video segment. With a limit of 0xFFFF, =
+things=20
+        worked swimmingly. With a limit of 3999 (80 * 25 * 2 - 1), the =
+system=20
+        froze up after returning to real mode and trying to use the ES =
+register.=20
+
+        <BLOCKQUOTE>Actually, for DS, ES, FS and GS, the segment limit =
+must be=20
+          0xFFFF <I>or greater</I>. If you give the segment a limit of =
+0xFFFFF=20
+          and make it page-granular, you can access up to 4G of memory =
+from real=20
+          mode. This has been dubbed <I>unreal mode</I>. However, limits =
+other=20
+          than 0xFFFF (or page-granularity) for CS or SS cause big =
+problems in=20
+          real mode. </BLOCKQUOTE>
+        <LI>You can <B>not</B> use the '286 LMSW instruction to clear =
+the PE=20
+        bit. Use MOV CR0, nnn.=20
+        <LI>Load <B>all</B> segment registers with valid selectors after =
+
+        entering protected mode. I forgot to do this with ES. A =
+protected-mode=20
+        routine pushed ES, loaded it with a valid selector, and used it. =
+When it=20
+        tried to pop the old, invalid (real-mode) selector back into ES, =
+it=20
+        crashed.=20
+        <LI>The IDTR <B>must</B> also be reset to a value that is =
+appropriate to=20
+        real-mode before re-enabling interrupts (see above).=20
+        <LI>Not all instructions are legal in real mode. If you attempt =
+to use=20
+        task state segments for multitasking, note that executing the =
+LTR=20
+        instruction in real-mode will cause an illegal instruction =
+interrupt.=20
+        <LI>Descriptor tables in ROM? Section 10.4.3 of 386INTEL.TXT =
+states=20
+        <BLOCKQUOTE>The GDT (as well as LDTs) should reside in RAM, =
+because=20
+          the processor modifies the accessed bit of=20
+        descriptors.</BLOCKQUOTE>However, one of my sources (thanks =
+Vinay)=20
+        states that later CPUs will not attempt to set the Accessed bit =
+in a=20
+        descriptor if that bit is already set. Check the docs for the =
+CPU you=20
+        are using.=20
+        <LI>The naive code described here will crash if the PC is in =
+Virtual=20
+        8086 (V86) mode. This is a fourth mode of operation found on the =
+386=20
+        CPU, with addressing similar to real mode but some of the =
+protection=20
+        mechanisms of protected mode. You may know that a Windows (or =
+OS/2, or=20
+        Linux) DOS box runs in V86 mode, but you may not realize that =
+memory=20
+        managers such as EMM386 also put the CPU in V86 mode.</LI></UL>
+      <P>If you want to start simple, try these tips:</P>
+      <UL>
+        <LI>Don't worry about returning to real mode. Use the reset =
+button :)=20
+        <LI>Leave interrupts disabled.=20
+        <LI>Don't use an LDT.=20
+        <LI>Put only four descriptors in the GDT: null, code, =
+stack/data, and=20
+        text video.=20
+        <LI>Set the segment bases to real-mode values i.e. 16 * =
+real-mode=20
+        segment register value. This lets you address variables in the =
+same way=20
+        in both real and protected modes.=20
+        <LI>Set all segment limits to their maximum (0xFFFF for 16-bit =
+protected=20
+        mode).=20
+        <LI>Leave all privilege values set to 0 (Ring 0, highest =
+privilege).=20
+        <LI>Install some crude exception handlers that simply scribble a =
+message=20
+        into video memory then halt:</LI></UL><PRE class=3Dcode>void =
+unhand(void)
+{	static const char Msg[]=3D"U n h a n d l e d   I n t e r r u p t ";
+
+	disable();
+	movedata(SYS_DATA_SEL, (unsigned)Msg,
+		LINEAR_SEL, 0xB8000,
+		sizeof(Msg));
+        while(1); }</PRE>
+      <P>The alternating spaces in the message are treated as attribute =
+bytes by=20
+      the PC video hardware, making the text an eye-catching black on =
+green. Put=20
+      an interrupt gate in the appropriate (all?) descriptor of the IDT, =
+with a=20
+      selector to your code segment in the trap gate's selector field, =
+and the=20
+      address of this routine in its offset field.</P><BR><BR>
+      <P>This tutorial is mirrored here with Chris Giese's =
+permission.</P>
+      <DIV id=3Dcredit>=A9 All Rights Reserved Bona Fide OS development =
+2001-2006.=20
+      We Disclaim responsibility for all bad things, good things okay. =
+<!-- BEGIN pStats! Tracking Code -->
+      <SCRIPT language=3Djavascript><!--=0A=
+document.write('<a target=3D"_new" =
+href=3D"http://www.pstats.com/scripts/reports.asp?id=3D613"><img =
+alt=3D"" border=3D"0" src=3D"');=0A=
+document.write('http://www.pstats.com/scripts/stats.asp?id=3D613&loc=3D')=
+;=0A=
+document.write(escape(document.location));=0A=
+document.write('&ref=3D' + escape(document.referrer));=0A=
+document.write('&res=3D' + screen.width + 'x' + screen.height);=0A=
+document.write('&type=3Dgraphic">');=0A=
+document.write('</'+'a>');=0A=
+// --></SCRIPT>
+      <NOSCRIPT><A href=3D"http://www.pstats.com/"><IMG alt=3D""=20
+      src=3D"mhtml:file://G:\download5\OS\for pm to rm\Bona Fide OS =
+Development - Protected =
+Mode.mht!http://www.pstats.com/scripts/stats.asp?id=3D613"=20
+      border=3D0></A></NOSCRIPT> <!-- END pStats! Tracking Code =
+--></DIV></TD>
+    <DIV></DIV></TR></TBODY></TABLE></BODY></HTML>
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/bflogo.png
+
+iVBORw0KGgoAAAANSUhEUgAAAXcAAAA8CAIAAAASSm2yAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
+WXMAAArwAAAK8AFCrDSYAAAAB3RJTUUH1QcEFQ0fkS5+WAAAGIpJREFUeNrtXXl4E9e1P9fxY7Ox
+Le+AhMELizG2MWBLBhwwi0tIXpsQuYGPJg1t2jRtFstf+5JQkpA0L2lSS4Ekr80CKW2ARAopAZKA
+CYtZJBEvBG8YsI1tGRvLkmUbvEBL8v4Ya7gajUYzo5Eswxz4YDTLucvc+zvLPecOgvmvARtCAAAI
+AQKEho6xAwCwX0L2U0MHAMh+hOz/DR14wND+BxByUQpxG1YKWe4Qc9pSuDCk1tZPGA49QMdw6DE6
+hsQZx44aLoZ4u/gydHzjtNW2X6IdqOSQox9C3BnSjnwfM+QxNwVhGAAiiSSSSN4kEWVEEkkkEWVE
+EkkkEWVEEkkkkUSUEUkkkUSUEUkkkUSUEUkkkUQSUUYkkUQSUUYkkUQSUUYkkUQSye9QBnlw1bNH
+yBsRcjqDHyDuFUFCdzfyQcciN3cjrsUg1xe9wxAEYIiog8JpVCCaSx7VEKERNGt8OmIDeT5s//G9
+tdKedwK3ckDs74l8kWSmCfm0PS8CsMdhlGTqXWPCGApG3Aeli3mInIYTolyiPopYTWzE/S0J8iLN
+prq+Hgty6GR799/6n/wX4VMNYVMS2bsEAZo4NTlEEuUnM8QnU85rgooLeiLGBvg/Q+dLgZ7g3PfW
+ypvndwiLnaPCpoZlrA90xprhxG/k9gAB4qxeCCftO011NYY9l6pPCtsPP17/IkLJIZJooZQOxP0p
+5FuGTPPQ5fRE7MfJCNaRPWAY4AkzwSEGAG50X7Lq1TcHu9mrDzzUeMEYDotgdKJqvfAQAwBfbNvU
+dqnWD5X84akDcq/as5D2yEmS0KGVx+oDB2BjrYnzZshTl6EUoVQqPRzQBoOhtbV1CLwGbRa9OmqB
+6q6xEn8fnYLJUgZnAYOLgcpQLpfLZDLP8QV/HRykveDqAz81/vbxcXASVMhLjfK8YwMFKU2r1Qoy
+svPz84nBfXPQNtB+Znx8rmCGhl+7A3jXgXpFpVJ5jvgAkJ+fr9PpRqqfxfvC2WcMeWji7FyNyJe2
+QqC35w97UigUer0+OzubAJobtkv41ZsD3baa3Tdsl/4zYPOwoKCohKDIxEnzfoq3quHYu11Npc43
+T1/6u8j4LGbhXHVws7n+tPOzsUnyOasK3ArnYx8/39V2nraqCx74/eTkhTylvRBUd+bYF9s20V7a
++LcSsvCa8qO6917gV8SUpNmh4dFTp81Oly+TRMTQ3vNh0f9UGL4RpEWfFNfeJhacwIKKm6uREwVw
+bIF3B7VMJqMVxTcHuztO/qW/rcJziAGAvs4G87mDTcf/Sp5pKPk/WogBgPOH37lk3MnArdoFxADA
+lYvGM19qmPu1xDXEAMCpz99sOXcKho/OnylxdemVx+8mDmrLj/GGGABoulh19vThPf9866Xf3qt5
+YX13l5ky0LYKBzEA8NCKZMHVB8+lvecMuan2PBnytOB4rzExeSRMJpPRaGTDRSqVKhQKikaj0Wic
+IKbophD4gpOtuRSOQ/zdT7i9s63q66vmizOXPTkmKIIr0jLjc33ZPgaIIejMoW1xyQt4Az7F8GFJ
+JpNpWECt6ULVi0+serTgtQzFch8XfTv7rX3QKKZ1QBTojeoYjcb8/HyWbAoKCtRqNUMh/W0VJMRI
+pVK1Ws3bx2kwGAwGQ2FhIQk0N/pto4MkuIOJVKZw38TVjvqzX7wcL18blZDF4Jwin9XpdAw9QPTc
+wFVrfdl+8qRer8cBlyy9v9dScWjb3OXr+Y0M9i+CgfCmOYg0x7KVSiUnDx3hYzYYDDqdDnc2f6R5
+DgHKUCyjtIxSDe6CkXP0nV8GHLKwgpB/4WmAD8pjJpdrGXa6YWsiIUav1yuVSt7LKAqFQqVS4TOh
+r7PeVaO0Wm1RURH58/o167lv3r5c+TXnfnBxa0PZ/oGrFhJqKTodXnSd8Yv+XisrrVtQmj7nbq/y
+VygUSqVSrVabTCa9Xi+VSslL2zTPnhHOSvJzjcOn03441gEDYeSQJ/hC4SOVSt2iGwCoVCqFQkGu
+fAFAg2FHr7k+MXvdmOBwT0aGrf1Cfdk+Ej0LCgqcXVRFRUWk2nVi9xt569/wpNUJqTnIlYR0lPII
++OR3eI44JpMJ1x+3ap790/RUV/5gT3GEKWKAT2uFDzi8jSy4QD4PIx9CC3IYiLw9DhQHkEKhYPk4
+sfJVWFhI3t/ZcLq3oz5lxVMhMYlseoP2evXRv+M2I4meJpOJPFapVBqNhgA4S2tdS+0pwkHDr/sb
+Ko+7NFo13wDQfIRk70ebPHl1TEE3drh31h9xoDmyf+fqRwq8agzSvSn/CE4ZpmwA4B9w6PKpYdZl
+pFIpZagZDAaWz3IaZEqlkgJS7Ekmk2m1WmLOk9ZT+ecvzlrxdExiFp8JX76/q+0CcSyXy1UqFQkx
+2dnZer2eBBqtVpudnU0clxdvjZu1wBtvQVOwjAAa9rY9K7YajVsol8vlarUafzVarVYmkxHwdMZw
+aPXPXaIMP8c2V1RwZ2ggpzuETy8Y6T7jAG/UTqlU/sCOTCYTjjImk4mywOQ/pFartVot7juoKd5c
+fXAz6y4bOhi42tWAOX1xzzehueA9QHguiOP+Xkt58Ta4vchoNGZnZ1PwgrQfbdaObmuHsCU+s1Hj
+O0PDo/QCNylVIyjgMFBw3OJHJpNJp9PhE2y0ZCrLZ4Olc+k8DkNabo+pjLfCL5VKcU+QUqmUy+X5
++fnkOr254fSY4AhOXddYQe/0JRFWo9HgNlRRURE5Cc8Z9iTLfxwUGsneh/LDDz+wc0/wccqwpNmZ
+uRR7pPLbwxS1tKWlhWyyUqkkHVKNF6o8KfrJ54sQnmYOSJ6TN9J8HJyzMf2tUYHsS/OBNwY344cS
+JlnQhKzHXH3os9dUxowyiLEy+fn5arUa17ZkMhmRCUHO/MFrVvYNHLhqbXDh9MURNj8/n7QcKW7g
+47o/r/zlmzxG2DDS7Pm5qZlL8U+gIvRqc33Nvh1vNV2sIs0f0nKUyWRs3PMMq9q4SyhrUR7+iVvv
+SXtmhPAVQ07pBQh8EnDoL3vlyWQylUrV0tJCmiT97WeGvVYk0FDOa7VaToEhpApctl+N2wW40xdH
+GaPRiPunVCoV2S2drXXNNScFTy9AbnV1oa33uKSUJ1/6MMy+hEQJ42TjRNO6JobH75CNozgyZJNe
+gHjXIYBLC9g2X6fTIXYkk8lwm1wmk5HinX2wr7dFeWFhYX5+PiUcVqlU4pjIhtouGGx2p69UKiVF
+N9B5svGr4JiPWla81Tcgy05/9aj707KW+uLlIo8uiekFzr4Ix/a4MeX4rTEhoSY2oSzgvgPcJvdk
+DAkLPTqdzmAw4Ks/BCZSQjyYa1h7bDstahgMBueEDKPRqFarSawh3MBEQX09ltLirfPzfsmm5mxX
+4hCvrkNc0Yp6cPb0YV8h5vCrMHdgHQikCPTKS/PMdPIr9RUHxMmTJzsHuWu1WrVa7RYZa0u2D1y1
+kkiKq/QGg4HWxUBxTOBu4Fr9nlmKnxBuYOQOH/3OT4MAAHq7zF98/Ba5hCSXy/FbHDVHF3IXebbd
+qX+kFyDfMuRxyfNp6Ec7P/Au82prBQwFldkdWoiDuuX2xtFBEdf7rKRq4JytQ4QIM3AfvGptLN+P
+4wWDccSAv7gb+Jj29VWP/UWQLl71yEZvY3rVt0eIOdNjMzfXV7fUV1OWqCk4yzLblk0NT584iK8x
+TUtOj4iKETUODgw9jg8cSRkGrqjd+L5X+Y+PSQAzXLevJel0OoVCQQSPkfcweyvL92twiOGdJ4FH
+A3ea6ppqTk6dtZDls3nrNrjaV3xaunfzlXa8u4H5Bkpn4vqXJCLGE+G25VWqjlmwUYNQekRUrAsX
+g+spM9zbD7tn6K9YFsD5YUH1GalUyrRY4yPdyX0xmWs3R2F7WRGxZCzDlNsvGGzt9E5fHoR3V+mB
+D9k/mJiaM/Q3LScJ++ttiGEzACiKDL6oN3XabGFL1LxScKH2O9eDgENwCrN3fBimvV+mF3ikyzCU
+QsT+enuActoEgGL286CZy5+MasysPfQ26TTJzs4uKipyixrnjv+DFiOAtWsWV38obuBvD3yYtfIx
+wV+hIO59hj4n0spod/BQq9WkuZShWCbUAAC3eVUe2QV0SER3iUeowG1gwQV6t3bciRKcgpdJWUv2
+ZLNhB1as2xUVnzXn/sjaQ1tI66mwsNBoNDLXxJXTV6VSsXfN4kXgbuAa/Z6UBfeDT4YaD/uO6yM6
+nQ73o+fet45ln7Ah2tVAvwtO8cv0Amatzy3DAL8ancx5TEItl7Dfys+ZQmISM+5/KTQmCa8VsaTN
+RiXB5Sr7jC1iHZ38SbiByZ99PRbOr4+fs8Cb44GICcCVu6X3rhPcXBLS0PCRxuG/Fhx7CmRZmg9E
+n1qtJl2bAEB+wID8XgolhMST0Uz+HBXEeZuY0cHhGQ+81KDf0XL2K9J6ol3kdmX1UOR8au6j40Ii
+sO9w2jscoVO73yDlMA5kuBvYF34pb8oVo9Go0+koImSOYtkDrvd8GJYm+396AfWsf6QXgFBrTB7u
+9OFsMN81VhJsR5lxE+dcbThMWiiFhYWe7MiJFzQqKDwoKoGCdORwp1VPyE5MXLAuJDYJz8kmFrld
+PYvvUoorUxGTpidl3kdu6ULk2pApP+elMyytdQSQKRQKvNW0mT54/RnFhXs/Ai5ZmNgih+5lPxIY
+NMo5imW/UL1OK4c80WfdeuvvxFVqtxacywMOpQSybgHTmp+woV93jZVELygkP5g9RjI1JGFpb8Nh
+fMZ6Hk8xKig8wWlrcVecaTsxOiFr4SPvlO1+cRBb5OZq7qXmPspQyYWr/7Bn83r2rebUM+wHtGu2
+DjxaW1s9HAmSiJj7Hy6YY3f6Ig9ax74L/CEbQHCG3g84dJ9eQKrnd8GkZe5fg+MuakMqPUIB42K+
+t1YKq8oGx+dKUtcGjpXggn1szMwf/nP9uuMXmjyEmPicJ4KjE4i+GB0UcfPfAwPdbc53RsZnSlNX
+jg6KuJXUi/VD4Oixcemr+myX+7pojJcJSYoJ0+RjQyLJlWwKLf7ZaxETp1M7diiUBRCgUWPGTUjM
+aDhzyFVDlvz0uVFjxsVMnvnv6wPd5hZXt+Wt2xAeG4drSXjm+q0DR5UqJDz6xmC/pb2JlueDv94U
+PXEqQjBmbLAsIaWm7Cjv1xEWETMjTbFS+diaX/9xgizBoR8AwiNjBwf62k2Ngrz6go2aacnp44KC
+iQIc+gFuhRHh/QCUnqG8KcdJ4c8MEaJuWuADhgCAYP5rnFEGK+Z7a+Ut7phD4RbQIYftDO0PA8JM
+Q+LcKEl84JgwsiV4L5Mnr3ddInaEQI7WJTXwF7AsY8cqIYDg6MT/CpJQ+qvP0nCjrwuw/iIeHx0c
+HhKT6LB1AB0odDQYkUN1ABCMDY6UTEy6ctFANhgLQoWxIZERk6a5Yoj3g+Xyhf5eC22Tg0KjomUz
+EIJO0/m+3k5XTU5My3HsWFYoAwjam2qv2joBH/p2AZY8bwnJsLe7s7WhBnvLQNtk8gfZ85KImLik
+FOcmU2rYdLHKZunAE/bYjCunCiCEIGlmemR0LH0/2Bvp3A/IfgfNm7JPCh4MqZgyHAzxdgnGkDfK
+4NydC8bbfwvM6N6Q1xhSm4dcCwf6Ae2uv3gzpBUOI50hrfgiYYuGIYbU9G+cO0Mcm1ww9IMpx5Eh
+7cj3MUMec9MVQ+7eX3HNz1fLNMLW4VqP5eyJz691d46XRM3JWR0cFkVeqijZ3d5UCwDzljw4cUoy
+heGerZtIzpPiZ8mXunHuMoTztTRUN9dX5axcw6nqnuT+dVk6wiNjXTkLGHcwcGI23OkF3vrOiU9G
+bIAvhru45jd8bkUE0FB5fPe7zwSHRiam5QSHRm17Ze3Fs8eJp77a/kp7U+209JyJU5L3ffQyATc4
+1VUcmzln8YyMxTMyFl9urPn7m0/wHp3dXR3NF6t9tqpy+sTBj997gy/DkSGoBBDY3k8vAN4r2eKa
+n5fW/LzRsaf2v7/6t2+ND4skBPmEuJlf//NP09JzAODCdyUFmm8IDXfi1OS2ptqJU2dRhPOMjMXE
+meS5S7a/+URt+bHkeUsAoLWxptfWKUtICZVEtTbWhIZHhUqiiUeqS4/Mnr8UAKpKjyBAqVm5lCo1
+11d3WzumTEuVREQDwHfGb+bIl50xfiOJiCUi8ZouVEkio7ut5m5rR0b2cgAo1x+SRMUmEHF6CBrP
+V9qsHYnT0yRRMQBQerI4c+GKb08WI4CsRSu6LB31dZVdliunTxwkNvr15lfNkJNaw5BegIT/zonf
+T0P3a0zuTXHBbXvfMuTh3hecIe5d4uDjYGE5N1aesJmb0xc9QDIcHxZVX3li1JigiNi45vPlzefL
+ACAydsp4SdTEKckUhie/2r5o1c9JhmPGBp2rOJo8d8nu9180HtZeH+gr2f9RiCT6xmD/gU/fmbvo
+XoRQdemR6rKjkxNTNm9YZ2671GMzf7nz7dTM3B6buePypbSspR+/veH417sGB/q0H7waK42fII1/
+/fcP1VUae6zmY1/uvHSxKkOx7PN/qPWHv2g3NZw7a6z9znB43w6btePwvh0AkDAj7b03f39o746B
+/r69n/xNEhkzaXLiht/ef7z4X4P910oO/au+7qw0LrHk4O4uS8dA3zV5Tp6vPIPeYzhSXY0e6TL+
+rXGM6DrQCUZwIRgRq62HgkKjKKI32P4VhIee3lJRsrv82O79f39l4pTk+9a/EBIW7Zbh5caaXpu5
+4PXPEKDe7s6trz9e+MbnB7Rv99rMoeEx+uJP71nz1KmDny7M++nCHz2EAJ08+MmJA5/EJaUAQEt9
+dXN99cYtexGC5vqa7ZufmyNfCgBL7lk7R7EMAXrhiVXEluPx01NXP1KAEPrN6ozXPvg6PCK2wnCo
+TH8o4XylzdrxxtYDCKFuS8erf3g4c2EeAPzuub8kzEizWTueeXjZk8+rf3T/w9+eKH56g9oHdgFb
+hgL4P9lYcMjfZk0gm0f9/QPjvtpSzCteQEEVYdqh1tfTSTlzrccCANe6O6/1WufevXru4tUIUEXJ
+Zzs1Tz6+6VO3hfXYzK2NNZt+lYOfnDUvt7r06OzM3B6bWZYw69TBT04e3PXlri3E1dTMXIAUAOi2
+dsQlphAn4xJTyL2s0uVDOvWUabNt1g7igGSOf8e2y9LRUFf5yx+nU2qVMCMVAMIjY/zXGe8jV+Ot
+wYrcuxqRdz2DHuoy4kaqwtSBoyzl+g3ThNScU1++39FyLjYumbh0pbnuWndnUlrOlea6r7a//NiL
+uwh0mrv4waP/+isNbmOHpw9rs5bmIwBp/KxfPPtXQiWuLT8KANkr8j/438d7uzsXrHiIuHnVmqcI
+XabXZu7tMnfbzHY3MPWAOJZERAOCbquZwBSGeZgwI/X5P/+D0MjLThX79Ktmt+2I9Zar0R3KMKUX
+iGt+I8YDt+DeX332zjML73t8fFjktR7Lib1/u+fhjQhgQtzMCVOSd21+au7iBxGC8qOfzVtCk+1Z
+V3GMsLG/PawlfMAIQbHu3WLdu9L4WbXlR0PDY1Lm5YZKokMk0dWlR3694T0AWPijNTvf/SMgCJPE
+fLlry7rf/Ynglpa1dN/OLXt3bJ6SlFLy1a7Fq9YS5z9669klq9YSi1BTGFOx5y1Yrvuo6NNtRQkz
+UstOHgqPipm/KI+2H7osV04fP5jF+Jk3zh07IrMBBDc+OKQXuPP+MqYXsI84xvxDdI5PurBaYAy7
+og1aZWZIG1Y70hnSBrw5M4yIjUvOWmm6UH6l5RxCcM8jGyfEJROXp6XffeN6f3NdmfVK89SZ8xes
+fITC0HKl2dLeZG1vsrQ3JSRn3vuzPxAVS5635HJjTWtjjSw+ZfF/rydqGD0pPiw8Oml2FgAKDY+O
+S5xdVXqko+3SfWufjkucfX2wHxBMSUpNky9trq9uulg1M1We9+BjCODA7g8eLXjdeGTv2HHBqx9W
+jRkX1G01T5QlSCJiEEJXWhvnZi9HCA0O9COAhOlp8xcubzxf2VBXmTgz9SdrfgMItbU0ZC5aQVT7
+cktD1qI8aVxiW0vjxbqzipw8MRtgGNMLwE3sr7v0Al8FF3LFMuQSHL0wh5lD433PkD4+1b8ZPrNm
+/uZPSxG3wN87MRtgZKQXOAb+AvtdrIY1HFY4i9G/txTzmhdQeIZCBhzyHC0s1uA4cr0tQrr8sQ4B
+HMq7Ddf87hS/tV83CsHmT0q97MjzVnoBjGhXI7/4QO6vXvjvZI+oNT88kZtu8PlyzW9EuxX9G/68
+Kaj8LjjF63XgPjcDeJR/x69Sj6T0Ah/Vwb+Fs0+k/TClF/jaVuBDAZ6Wd5t8YFwwpcOzNT8kSA15
+fOdkBGocd46g8sL30HzpavTcYhI/9+mdRnnNtSmcLPV/hh5Je4EY8pjYLNJGRpgF9/9Ma3se6bLq
+DgAAAABJRU5ErkJggg==
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/tuts.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAABoUlE
+QVR42o2TQWsTURSFP6UgduEiEASXJc+9G4dSFLp10/8huBH0l7jSRZFUCOomSHETSEJMIRIQCoGE
+KRoNecNMF2YSqIbX964LmWEmk2gvnMXAnO8ezp2Bv7MDyBV0hw0jzrm1stbKeDyWdrudQHY2AuI4
+XqtOpyPGGKnVaoUk1zIAFosFvu+nVKUUAI1Gg16vRxAETCYTWq1W8spBAVCIJsJ8PqdarXJy8onj
+44+YYI9fX0rcevShmGA0GuUASil830dE8DyPy/MHmM83eHwYXRy+P93OAeI4zm3OTqlU4jLcw/S3
+efb2Jy9e9wHubWUNIpJ2kGwG8DyP5bddfvdu8vTdkpfVPsBdwE8TWGuZzWa5zSJCuVzm4vQ+yx+3
+efLqK0f1Qe4A17MxnXMMh8NU1loAvp895PmbCUf1QfYC+bKttRJFkURRJGEYShiGAsjBfjn9EoMg
+kGazmTyzMYG1Nr1GvXmO1hqtNc65QrlbqzdXSiEiVCoVtNZpuYnxv4DVEldNzrn1gG63izHmn2aA
+6XQKMFgtcf+Kv3Oi3cT4B1rYZqsuMPYzAAAAAElFTkSuQmCC
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/docs.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlz
+AAALEgAACxIB0t1+/AAAAAd0SU1FB9EHFAkZNM2IH9AAAAGTSURBVHjarZO/SxtxGMY/F7JkEgqB
+gBK4UgchSsQxXW4JR6BwWyBZJEtJkYDDEXRK4OwtkqFL8g8UQuvg4BBECA5OjiK4SIixVS8JxuAS
+/PE6aNRcqlHoC+/0Ps/7/fC8fBVG1yHgAcaAD6PEcUCed6FQkEajIel0WtwzIO5xLShfdOq0zvZp
+Nw+YmZ6ic37K8pKJ4/xFVYMsZRdonuyx+n0BoOwmkPLPogAyNzsj+Xxe2q0zqVarsvb7lySTSZn8
+9FEA+aLPCSCKewGAiACg6zq9Xu9x6PV6MU2TaDSKotxbPS+FYVkWlUqFSCRCIBAgm83S7XaxbXtA
+9yrBa9UnUB6SL48ymKaJ4zj4fD6KxeLAAnnri891QxmkUikADMMgFotRKpUIhUKEw+FHUy6Xw7Ks
+oQz+D0GfQtM0ADKZDJqmkUgkBkz9Xsx8fT/B9sYKR8dNghN+Kpu72D/Wnwhs28YwDHRdHyBw3z04
+4Qfg8rIzTFCr1VBV9UWCb/Ofub2+5ermivqR82drpz7+zx/4jo7fAcBnuZdMsweQAAAAAElFTkSu
+QmCC
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/dl.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAABC0lE
+QVR42q1SPUsDQRScd3un+Sf+glT+GC0FwdYihbVdSCeCElCwjYWVGgyytV8kkrO6Lkg8FE8u2Xt5
+6YIXd29TOOXszPB23iP8hcANWiZCm+quf4Nx+o58mkPrHibFFMcHZ9ZEa0DBBlARolqA9PsD2deP
+cyRrQEAKLAYsDB8CG6mUwqoIXA8iAiLyBoSu5meYQUFVbYiW1yL77T3UNzaxptZhmMFi0Lm8WAhG
+yRuuz19Kvt9foMOtFu4fbpEXOYyYUrrNbOuAmjtH0I9dMBuEFFWaXSXSaaONYfyMzGSVZh9kt7kt
+ntP2h/gEtKrQ5V2csh5qJOOkpIjjPl4HTyUuHX3i6qT7fxPMAQsvcolxsrH2AAAAAElFTkSuQmCC
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/books.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAACQElE
+QVR42q2TS0hUYRTHf/cxM87oTOYjQ1DEkjbRIhQzpH0REkQUtKuFCC4Sl0EGbRXbWhm4EMukQNCF
+Q4swIlCzGJQidZTMHirO696Zufe792sxD0SCWnjgbA7n/M6LPxyy+RpPnRkC5L/cH6zoBlTlAOBG
+KBQa63/yktkPnzENk0QqSSaTRkrQVAVN1SjTskyODAJo6gHA2PBEmLmlKImkQTyZIp5IkTLSGGaa
+ZMrEp0Nsd0sC5wF3P+BqU1MTsaSJkc5g2za2EDiOA4CigKZreGSW8oAX4B1AAaABE339j5iLrJLJ
+ZLEsC8uycF0nn6JQXV7G3vaWa5txeaen98V+wO329nZ+7aVJpMxid2HbxfFUVcHvUYlvbxIsLeXh
+4MA1wFsADPX2DbD2fTtXnHen2B1qq46wsrxAW8tZdfz5mApcACwVuNLR0UFk9SeGmUYIgRACRwik
+lEWAtA10N8vX1TU3H5rNLQby6egruf47pghbYNk2lmURS6SQbg4gHIedzRUqSzWejY7g8ZXcs7OZ
+BwA6wEx4RllenHNqams1r0cDwLJshJu7vq7rNNTX4wgbYKlQXAT4AwGaW1u0y5cu0nauFelK/IES
+pATHdVmPRnn7fp6e7k4UVb0vXbe4mlbXcCLwJjwVXFyYr/m2YxiRLxteS/FRU1WOlBK/z8dadIPp
+6Skinz6ClNf/poFKoAt4DLwGfgCy8XSzdfNWlxifnLEBGQhV3P0fQR3Pv6gzeLR6uCCeY3Unw4qm
+c+j2B7ReHubL5iiHAAAAAElFTkSuQmCC
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/links.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAABAUlE
+QVR42s2TP2vCQBiHH0M/gJtbcCiFOFgQFYpbKQ6GItS1Tk46uYtTxn4AJ0e7tVMFEXEMLXVyKDi1
+Q7cOOh5SOJdEz+OCTab+4OXgfe8e3n8HB9mABNIklBxOljIuxArOq3ylCoDb9gDWGkQqdmEC+PVm
+d+80QFKKrXRAuVCpIYQ4Si0iE2MJb26zYwxqkEZQQljSDYCVzRURYmsEjAd9gEtgAzwB90GoAcwA
+rK+PhfPQvYt6XACWinsE3ALP+n0nHKPb9sJul+PugaOMqqTFzrVR2rGX7OflUX73WvLz2pZKM/d7
+cFK/r/PDK0VnfwUIfwrA+1ok+id6DzL8G+0ApB1Sn53jAbQAAAAASUVORK5CYII=
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/search.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAZiS0dE
+AP8A/wD/oL2nkwAAAAlwSFlzAAALEgAACxIB0t1+/AAAAAd0SU1FB9IBBRYFK1D8HMEAAAGLSURB
+VHjajZOxiupAFIb/XG9j4zyLhW9ht2Xa28gWPoS+g+mXK2ojpLaIqIVCFISbWkhhMpFoGLAJM/8t
+loTNJsIOHGYYzv/xnzNngM/1BoA/iD5eLBpjGkNrzcvlwvV6XUDeXgKyLGuMzWbDPM85m81qTqwv
+ACilGu2tVivs93tcr1eEYQjP80rtryaB4zgQQkAIAcdx0Ov1IIRAmt4QBEEltwaYTCYIwxBBEEAp
+hTAMMZ1OMRgM8PHxF8vl8nUT7/c7AfBwOPD5fNIYQ6UUAfB8PvN2u3G73RZ9AAD8LgkkyM97KSWy
+LEOr1cLj8UBTTg1QJIxGI7iuC5LodDpYLBYYDofQWoMkjDHNJWitmSQJoyjieDwuh8e27fLs+z49
+z6uUUAFIKSmlZBzHjOOYURTR9/3KNM7n8wrA+gJAkiSNFo/HI/r92hTX54AkLMvC97tutwvXdRtr
+rziI47jS5eJc7KfTCUop2LZdastX2O12yPP8pRgA2u020jQFgH/fnbz/8DsX8acQ/gdfUFtWpt1p
+ogAAAABJRU5ErkJggg==
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/forum.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA6gDoAOMF1VbbAAABqklE
+QVR42s2TsUsjQRTGf+YKr8gKRq1UlPMPMCKKoM2eEJPGSri7Rg60EAQtFHsrr9VCBA3KYRNQEgKK
+5DhlC0FPIqelaNREY7LR9dysbmKIa5OIZ1ZS2PhgYN5882bmfd838MYoKYJnn80/mG2wvMgbADU3
+moHM0eGBBcjk8jzW8NqNqqIoGb/fZwCq0yEa8+5pw+kQDUD9MTFuAJu5Q0xbUN1zM4KmqZQJ1qfF
+m5t/lJZ+JB6LsrUdZC2wkQTKzFoQ+/oHkvniwK91JEkifZ8lHotyp+v5YtGMgyzwx+kQBQBJkpDl
+BFvbQZaXlqmr/4Sup8jhPiBR8AJFubIMDQ8BkL7PEgodEw6fET6L0uXqpsJWTm1tNd97v9SYqmCz
+VaSnJqcAsNsbqaq0YRWsjI6MkE6lOI/GiETOWfjpkYEHMxKbgQ2f1yP83d2hta0de1ML18oV678D
+7O/vMetezHMQNFVhdcUr3Goampbk9CQEwJ2uA3ARk0nIl/+pUOADYPPb1x4DuHU6RGNsdPDJBy5X
+Z4EPKOLEyGexwwAirzmx2F+IPyO6incZj51DuBO1OH/ZAAAAAElFTkSuQmCC
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.osdever.net/images/chat.png
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAB4UlE
+QVR42tWSP0scURTFf+/NFFaWWggWgnHJJ/ALpLG18E/ELk0qgx/FznSKLm4hYRGbfIOIsIhBtnMh
+D1wH3XUYZpA3806anSXrhvQ5cHhw3z3nnsd9MI1toAXcA37E+1Ftm3/gA3C7v7+vm5sbDQYDpWmq
+l5cXJUmi6+tr7e3tCbgd9U5OnZ+fV7fbVZZlyvNcRVEoz3NlWaY0TfX8/KwkSdTpdDQ3N6c6jQHe
+AV3nHLOzs5ycnGCtxRiDJEIIE9zY2CBNU5aXlwFWAA4vLy81HA6VZZmKopD3XpLkvVdRFMqyTMPh
+UE9PT+r3+3LO6fz8XMChAX49PDwszMzMEEXRVIKdnR2qqqKqKsqyHJ+vr68sLS05AyhJEqIoIo5j
+rLV/fUItrg1CCCwuLhIDznu/YK2lqiqOj48xxrC7u8vR0RGSxkabm5uEEJBEWZYAzgCH7Xb70+rq
+KlEUYYzBWjteTy2oqooQwjjF1dUV6+vrX8dbeHx8BKDZbGKMGRtIYmtra0Kc5zmNRgNgpe5UbRBC
+mDL4M0W/32dtbY0kST4Cp/HbH2WtpSgKAOI4RhLee5xznJ2dcXBw8BP4AnwHmDDo9Xq0Wi3u7u64
+uLgAKEdXDvgBfANO3w7VG34G3vPf4Dcmcl/CR7D+FwAAAABJRU5ErkJggg==
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Content-Location: http://www.pstats.com/scripts/stats.asp?id=613
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAADAFBMVEVLXnwAxgCElMb/////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//////////////8REe6bAAAAAXRSTlMAQObYZgAAAAFiS0dEAIgFHUgAAAAfSURBVHicY2BABoyM
+qDReAQgTTEJ4RAnAhAeLABoAADwHAHupExlEAAAAAElFTkSuQmCC
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0
+Content-Type: text/css;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://www.osdever.net/style.css
+
+BODY {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; BACKGROUND: #fafafa; =
+PADDING-BOTTOM: 0px; MARGIN: 0px; FONT: 14px verdana, arial, helvetica, =
+sans-serif; PADDING-TOP: 0px
+}
+H1 {
+	FONT-SIZE: 1.5em
+}
+H2 {
+	FONT-SIZE: 1.4em
+}
+H3 {
+	FONT-SIZE: 1.3em
+}
+H4 {
+	FONT-SIZE: 1.2em
+}
+H5 {
+	FONT-SIZE: 1.1em
+}
+H6 {
+	FONT-SIZE: 1em
+}
+P {
+	LINE-HEIGHT: 1.2em
+}
+PRE.code {
+	PADDING-RIGHT: 3px; DISPLAY: block; PADDING-LEFT: 3px; BACKGROUND: =
+rgb(221,221,221); PADDING-BOTTOM: 20px; MARGIN-LEFT: 10px; OVERFLOW: =
+scroll; WIDTH: 90%; COLOR: rgb(0,0,0); MARGIN-RIGHT: 10px; PADDING-TOP: =
+3px; FONT-FAMILY: courier, monospace; POSITION: relative
+}
+UL {
+	LIST-STYLE-IMAGE: url(bullet.gif)
+}
+PRE {
+	FONT-FAMILY: courier, monospace
+}
+H1 {
+	PADDING-RIGHT: 20px; PADDING-LEFT: 0px; PADDING-BOTTOM: 8px; MARGIN: =
+0px; FONT: 1.5em Georgia,Serif; COLOR: #776; PADDING-TOP: 20px; =
+BORDER-BOTTOM: #ddd 1px solid
+}
+#header {
+	BACKGROUND: #fff
+}
+#topmenu {
+	BORDER-RIGHT: #000 1px solid; BORDER-TOP: #000 1px solid; BACKGROUND: =
+#333; FONT: 10px Geneva, Arial, Helvetica, sans-serif; BORDER-LEFT: #000 =
+1px solid; BORDER-BOTTOM: #000 1px solid
+}
+#topmenu UL {
+	MARGIN: 0px; LIST-STYLE-TYPE: none; HEIGHT: 1.4em
+}
+#topmenu LI {
+	DISPLAY: block; FLOAT: left; WIDTH: 20%
+}
+#wrapper {
+	BACKGROUND: #fff; MARGIN: 0px auto; WIDTH: 770px
+}
+#leftbar {
+	FLOAT: left; WIDTH: 150px
+}
+#leftbar UL {
+	PADDING-LEFT: 5px; LIST-STYLE-TYPE: none
+}
+#poll {
+	MARGIN: 0px auto; WIDTH: 130px; TEXT-ALIGN: center
+}
+#reqread {
+	MARGIN: 0px auto; WIDTH: 130px; TEXT-ALIGN: center
+}
+#catmenu {
+	MARGIN: 0px auto; WIDTH: 130px; TEXT-ALIGN: center
+}
+#reqread {
+	MARGIN-TOP: 30px
+}
+#reqread A {
+	DISPLAY: block
+}
+#catmenu LI {
+	BORDER-BOTTOM: #eee 1px solid
+}
+#catmenu LI.sel {
+	BACKGROUND: #eee
+}
+#content {
+	FLOAT: left; MARGIN: 0px 8px; WIDTH: 600px
+}
+#front {
+	FLOAT: left; MARGIN: 0px 8px; WIDTH: 450px
+}
+#rightbar {
+	FLOAT: left; WIDTH: 150px
+}
+.news {
+	PADDING-LEFT: 3px; MARGIN: 5px 0px 20px; BORDER-LEFT: #f0f0f0 10px =
+solid; BACKGROUND-COLOR: #fff
+}
+.sidebar {
+	PADDING-RIGHT: 4px; PADDING-LEFT: 4px; BACKGROUND: #f0f0f0; =
+PADDING-BOTTOM: 4px; MARGIN: 5px 0px 10px; PADDING-TOP: 4px
+}
+.sidebar P {
+	FONT-SIZE: 0.8em
+}
+#credit {
+	CLEAR: both; FONT-SIZE: 0.7em; VERTICAL-ALIGN: bottom; COLOR: #666; =
+TEXT-ALIGN: center
+}
+A:link {
+	FONT-WEIGHT: bold; COLOR: #036; TEXT-DECORATION: none
+}
+A:visited {
+	FONT-WEIGHT: bold; COLOR: #039; TEXT-DECORATION: none
+}
+A:active {
+	FONT-WEIGHT: bold; COLOR: #06f; TEXT-DECORATION: none
+}
+A:hover {
+	FONT-WEIGHT: bold; COLOR: #06f; TEXT-DECORATION: none
+}
+#topmenu A:link {
+	COLOR: #fff; TEXT-DECORATION: none
+}
+#topmenu A:visited {
+	COLOR: #eee; TEXT-DECORATION: none
+}
+#topmenu A:active {
+	COLOR: #eee; TEXT-DECORATION: none
+}
+#topmenu A:hover {
+	COLOR: #eee; TEXT-DECORATION: underline
+}
+A.title:link {
+	FONT: bold 10pt arial,sans-serif; COLOR: #000; TEXT-DECORATION: none
+}
+A.title:active {
+	FONT: bold 10pt arial,sans-serif; COLOR: #ccc; TEXT-DECORATION: =
+underline
+}
+A.title:visited {
+	FONT: bold 10pt arial,sans-serif; COLOR: #000; TEXT-DECORATION: none
+}
+A.title:hover {
+	FONT: bold 10pt arial,sans-serif; COLOR: #06f; TEXT-DECORATION: =
+underline
+}
+A.desc:link {
+	FONT: 8pt arial,sans-serif; COLOR: #000; TEXT-DECORATION: none
+}
+A.desc:active {
+	FONT: 8pt arial,sans-serif; COLOR: #000; TEXT-DECORATION: underline
+}
+A.desc:visited {
+	FONT: 8pt arial,sans-serif; COLOR: #333; TEXT-DECORATION: none
+}
+A.desc:hover {
+	FONT: 8pt arial,sans-serif; COLOR: #000; TEXT-DECORATION: none
+}
+
+------=_NextPart_000_0019_01C97A88.A4AFDEE0--

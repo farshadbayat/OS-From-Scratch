@@ -1,0 +1,1933 @@
+/* Comment */
+//Important: The LBA Of Sector Bitmap at The [IsAllocateSBitmapAtDrive,UnAllocateSector,AllocateSBitmapAtDrive] Function Is LBA-Root.This is Start From Zero!
+
+
+#include <zfs.h>
+#include <io.h>
+#include <system.h>  
+#include <conio.h>
+#include <HDDIO.h>
+#include <math.h>
+#include <fs.h>	
+#include <mmu.h>
+#include <stdio.h>
+#include <string.h>
+#define ZFS_DEBUG
+
+char DriveListName[]={'C','D','E','F'};
+unsigned int CashDrive[2]={0x00ff};//First Save Drive NO Second Save Root LBA
+struct BootSector mbr;
+
+void ZFS_Init()
+{
+	CashDrive[0]=0x00ff;	
+	ReadMBR(&mbr);
+	kprintf("Zanjan File System Is Initialize\t\t\t[ OK ]");	 
+	#ifdef ZFS_DEBUG
+		 PrintBootSector(&mbr);
+		 getch();
+	#endif
+	
+}
+/// <summary>		
+	/// This Function Calculat Sector Bitmap Size. 
+	/// Disk Partition Size Is Divided By SECTOR_SIZE*8 .	
+/// </summary>
+unsigned int CalculatSBitmapSize(unsigned int PartitionSize)
+{
+	int Result;
+	Result=(int)floorl(PartitionSize/(SECTOR_SIZE*8)); 	
+	Result-=(int)ceill(Result/(SECTOR_SIZE*8));			//This Is How Many Sector Is Used For Just SBitmap.And This Must Reduce From SBitmapSize.
+	return Result; 
+}
+void ReadMBR(struct BootSector *bs)
+{	
+	HDD_RW(0, HD_READ, 1, bs);
+	/*clrscr();
+	dump(bs,0x200,true);getch();*/
+}
+
+int FormatPartition(char *SysName ,short DriveNumber ,unsigned int Size ,char PartitionType ,bool IsBootable )
+{
+	unsigned int i=0,PartitionAddress=0;
+	struct BootSector bs;
+	char Drive=DriveListName[DriveNumber];
+	printf("\nVolume Size:%dMB\nDrive Name:%c:\\",CSectroToMega(Size),Drive);
+	cprintf(LIGHTBLUE,"\nDo You Want To Continue Formating Partition %c?(Y/N)?",Drive );
+	if(CharToUpper(getch())!='Y')
+		return -1;	
+	printf("\nPartition %c Formating  Is Start...\n",Drive);
+
+	if(DriveNumber==-1){
+		kprintf("FormatPartition: Path Name Is Invalid Drive Name.");
+		return -1;
+	}
+	/* First Read MBR */
+	if(DriveNumber!=0)
+	{
+		ReadMBR(&mbr);
+		//PrintBootSector(&mbr);getch();
+		if(mbr.Signacuer[0]!=0x55 || mbr.Signacuer[1]!=0xAA)
+		{
+			printf("mbr.Signacuer[0]!=%2X 0x55 mbr.Signacuer[1]!=%2X 0xAA",mbr.Signacuer[0] ,mbr.Signacuer[1]);
+			cprintf(RED,"\nMBR Signacuer Is Not Valid!\nYou Must Format First Partition To Corrected MBR(Master Boot Record)...");			
+			PrintBootSector(&mbr);
+			getch();
+			return 0;
+		}
+		PartitionAddress=mbr.DiskPartition[DriveNumber-1].BeginLBA + mbr.DiskPartition[DriveNumber-1].SizeLBA; //<===
+	}
+	else{
+		printf("The Partition Is Correct Boot Sector Format!\n");
+	}
+
+	Bytencpy((char *)&(bs.DiskPartition) ,(char *)&(mbr.DiskPartition) ,4*sizeof(struct PartitionFormat));	
+
+	bs.jumpBoot[0] = 0xEB;
+	bs.jumpBoot[1] = 0x3C;
+	bs.jumpBoot[2] = 0x90;
+	//Set System Name It is Zanjan Operating System
+	for(i=0;i<8;i++) bs.SysName[i]=SysName[i];
+	//Set Bootable Partition,Partition Type,Partition Address
+	bs.DiskPartition[DriveNumber].bootable = (IsBootable==true ? BOOTABLE : 0x00);
+	bs.DiskPartition[DriveNumber].PartitionType = PartitionType;		
+	bs.DiskPartition[DriveNumber].BeginLBA = PartitionAddress;
+	bs.DiskPartition[DriveNumber].SizeLBA = Size; /*Unit Is Sector For example  400Secot=200MB*/
+	bs.DriveName =Drive; 	//Drive Name C,D,E,F	
+	bs.StartSectorBitmap=1; /* SectorBitmap Is table that show which sector is free and which is used */
+	bs.SizeSectorBitmap=CalculatSBitmapSize(bs.DiskPartition[DriveNumber].SizeLBA); 		
+	bs.StartRoot= bs.StartSectorBitmap+bs.SizeSectorBitmap;//Start Of Data File And Folder	
+	bs.Signacuer[0]=0x55;
+	bs.Signacuer[1]=0xAA;
+	// Save The Partition in the mbr ;any information for each partition is agein stor in mbr
+	if(DriveNumber==0)
+		Bytencpy((char *)&mbr ,(char *)&bs ,sizeof(struct BootSector));				
+	mbr.DiskPartition[DriveNumber].bootable=bs.DiskPartition[DriveNumber].bootable;
+	mbr.DiskPartition[DriveNumber].PartitionType=bs.DiskPartition[DriveNumber].PartitionType;		
+	mbr.DiskPartition[DriveNumber].BeginLBA=bs.DiskPartition[DriveNumber].BeginLBA;
+	mbr.DiskPartition[DriveNumber].SizeLBA =bs.DiskPartition[DriveNumber].SizeLBA;	
+	
+	unsigned char sect[512] = {0};
+	for(i=0;i<bs.SizeSectorBitmap;i++){		
+		HDD_RW(bs.DiskPartition[DriveNumber].BeginLBA+(i+1),HD_WRITE ,1,sect);
+		printf(" %02d %% Format Completed\r",(int)floorl((100*(i))/bs.SizeSectorBitmap));
+	}
+	//MakeBootSectorToSector(&bs,sect); //dump(sect,512);getch();
+	
+	HDD_RW(bs.DiskPartition[DriveNumber].BeginLBA, HD_WRITE, 1, &bs); //printf("%d",bs.DiskPartition[DriveNumber].BeginLBA);	getch();
+	//ReadMBR(NULL);
+	
+	PrintBootSector(&bs);getch();
+
+	if(DriveNumber!=0 ){
+		//MakeBootSectorToSector(&mbr,sect);
+		//printf("mbr.DiskPartition[0].BeginLBA=%d",mbr.DiskPartition[0].BeginLBA);
+		//PrintBootSector(&mbr);getch();
+		HDD_RW(mbr.DiskPartition[0].BeginLBA, HD_WRITE, 1, &mbr);
+	}
+
+
+	//printf("Root=%d",bs.StartRoot);getch();
+	CreatRootDirectoryAtDrive(DriveListName[DriveNumber] ,bs.StartRoot ,bs.DiskPartition[DriveNumber].BeginLBA  );
+	printf("Drive %c 100 %% Format Completed.\n",Drive);
+	return 0;
+}
+
+/// <summary>
+	///This Function Is Convert FileDate Struct To String[14 Byte Lenght].
+	///struct FileDate Is Contain unsigned char	Date[3] &  unsigned char	Time[3].
+/// </summary>
+void CFileDateToString(char StrFormat[] ,struct FileDate DateTime ,bool IsFullDateYear ,bool IsTime ,bool IsSecond )
+{
+	word i=0;
+	//char StrFormat[17];
+	char Tmp[4];
+	//For Year
+	itoa(DateTime.Date[0]+2000,Tmp,10);
+	if(IsFullDateYear==true){//Full Year i.e:2009
+		StrFormat[i++]=Tmp[0];
+		StrFormat[i++]=Tmp[1];
+	}
+	StrFormat[i++]=Tmp[2];
+	StrFormat[i++]=Tmp[3];
+	StrFormat[i++]='/';
+	//For Month
+	itoa(DateTime.Date[1],Tmp,10);
+	if(DateTime.Date[1]<10){
+		StrFormat[i++]='0';
+		StrFormat[i++]=Tmp[0];
+	}
+	else{
+		StrFormat[i++]=Tmp[0];
+		StrFormat[i++]=Tmp[1];
+	}
+	StrFormat[i++]='/';
+	//For Day
+	itoa(DateTime.Date[2],Tmp,10);
+	if(DateTime.Date[2]<10){
+		StrFormat[i++]='0';
+		StrFormat[i++]=Tmp[0];
+	}
+	else{
+		StrFormat[i++]=Tmp[0];
+		StrFormat[i++]=Tmp[1];
+	}
+	StrFormat[i++]=' ';
+
+	if(IsTime==false)
+		StrFormat[i-1]=0; 
+	//For Hour
+	itoa(DateTime.Time[0],Tmp,10);
+	if(DateTime.Time[0]<10){
+		StrFormat[i++]='0';
+		StrFormat[i++]=Tmp[0];
+	}
+	else{
+		StrFormat[i++]=Tmp[0];
+		StrFormat[i++]=Tmp[1];
+	}
+	StrFormat[i++]=':';
+	//For Minute
+	itoa(DateTime.Time[1],Tmp,10);
+	if(DateTime.Time[1]<10){
+		StrFormat[i++]='0';
+		StrFormat[i++]=Tmp[0];
+	}
+	else{
+		StrFormat[i++]=Tmp[0];
+		StrFormat[i++]=Tmp[1];
+	}
+	StrFormat[i++]=':';
+	
+	if(IsSecond==false)
+		StrFormat[i-1]=0; 
+	//For second
+	itoa(DateTime.Time[2],Tmp,10);
+	if(DateTime.Time[2]<10){
+		StrFormat[i++]='0';
+		StrFormat[i++]=Tmp[0];
+	}
+	else{
+		StrFormat[i++]=Tmp[0];
+		StrFormat[i++]=Tmp[1];
+	}	
+}
+
+/// <summary>
+	///This Function Is Convert DateTime To FileDate Struct.
+	///struct FileDate Is Contain unsigned char	Date[3] &  unsigned char	Time[3].
+/// </summary>
+struct FileDate CDateTimeToFileDate(TIME time ,DATE date )
+{
+	struct FileDate FDateTime;	
+	FDateTime.Date[0] =(char)date.year;		 //Year
+	FDateTime.Date[1] =(char)date.month;	 //Month
+	FDateTime.Date[2] =(char)date.date;		 //Day
+
+	FDateTime.Time[0]=(char) time.hour;		 //Hour 
+	FDateTime.Time[1]=(char) time.minute;	 //minute
+	FDateTime.Time[2]=(char) time.second;	 //second
+	return FDateTime;
+}
+
+void Framecpy(struct Frame *Dest ,struct Frame *Src)
+{
+	//Date
+	Bytencpy((char *)Dest->CreatFile.Date ,(char *)Src->CreatFile.Date ,3);
+	Bytencpy((char *)Dest->CreatFile.Time ,(char *)Src->CreatFile.Time ,3);
+
+	//printf("Time=%s Time=%s",Dest->CreatFile.Time,Src->CreatFile.Time);  getch();
+	Bytencpy((char *)Dest->ModifiedFile.Date ,(char *)Src->ModifiedFile.Date ,3);
+	Bytencpy((char *)Dest->ModifiedFile.Time ,(char *)Src->ModifiedFile.Time ,3);
+
+	//printf("Time=%s Time=%s",Dest->ModifiedFile.Time,Src->ModifiedFile.Time);  getch();
+	//Extention
+	Bytencpy((char *)Dest->FileExtention ,(char *)Src->FileExtention ,3);
+	//File Name
+	Bytencpy((char *)Dest->FileName ,(char *)Src->FileName ,11);
+	//Other Field
+	Dest->Flags =Src->Flags;
+	Dest->PaketAddress =Src->PaketAddress;	
+}
+/// <summary>
+	///This Function Is For Debuging Sector Bitmap Table.
+	///Part Is Multiply SECTOR_SIZE [Part=a*SECTOR_SIZE].
+/// </summary>
+void DumpSBitmap( short DriveNumber ,unsigned short Part)
+{
+	cprintf(YELLOW,"\nPRINT SECTOR BITMAP[%d...%d]:\n",GetSectorBitmapLBA(DriveNumber),GetSectorBitmapLBA(DriveNumber)+CalculatSBitmapSize(mbr.DiskPartition [DriveNumber].SizeLBA)-1);
+	unsigned char Sector[SECTOR_SIZE];
+	HDD_RW(GetSectorBitmapLBA(DriveNumber)+Part , HD_READ, 1, Sector);
+	dump(Sector,SECTOR_SIZE,true); 
+}
+
+/// <summary>
+	///This Function Return Drive Number(C=>0 ,D=>1,...).
+/// </summary>
+short GetDriveNumber(char Name)
+{
+	switch(CharToUpper(Name)){
+		case 'C':return 0;
+		case 'D':return 1;
+		case 'E':return 2;
+		case 'F':return 3;
+		default:return -1;
+	}	
+}
+
+/// <summary>
+	///This Function Return Start Of Root in Absolutly Address.
+/// </summary>
+unsigned int GetRootLBA(short DriveNumber)
+{
+	if(DriveNumber==-1) 
+	{
+		kprintf("GetRootLBA:This Drive Is Not Exist.");
+		return 0;
+	} 
+	//printf("\nGetRootLBA:CashDrive[0] =%d LBA=%d DriveNumber=%d",CashDrive[0] ,CashDrive[1],DriveNumber);getch();
+	if (CashDrive[0]!=(unsigned int)DriveNumber){		//For Store Last Drive Information	
+		CashDrive[0]=DriveNumber;
+		
+		//printf("DriveNumber =%d LBA=%d",DriveNumber ,CashDrive[1]);getch();
+		if(DriveNumber==0)
+			CashDrive[1]=mbr.DiskPartition[DriveNumber].BeginLBA + mbr.StartRoot;
+		else{
+			struct BootSector bs;
+			HDD_RW(mbr.DiskPartition[DriveNumber].BeginLBA, HD_READ, 1, &bs);
+			//MakeSectorToBootSector(Sector,&bs);
+			//printf("\nStartRoot=%d BeginLBA=%d",bs.StartRoot,mbr.DiskPartition[DriveNumber].BeginLBA);getch();
+			CashDrive[1]=(mbr.DiskPartition[DriveNumber].BeginLBA + bs.StartRoot);
+			//printf("DriveNumber =%d LBA=%d",DriveNumber ,CashDrive[1]);getch();
+			if(IsAllocateSBitmapAtDrive(DriveNumber,CashDrive[1])==false)
+			{
+				kprintf("GetRootLBA: This LBA Not Allocated[%d]",mbr.DiskPartition[DriveNumber].BeginLBA);
+				return 0;
+			}
+		}
+	}
+	//printf("DriveNumber =%d LBA=%d",DriveNumber ,CashDrive[1]);getch();
+	return CashDrive[1];
+}
+
+/// <summary>
+	///This Function Return Start Of Sector Bitmap Table in Absolutly
+/// </summary>
+unsigned int GetSectorBitmapLBA(short DriveNumber )
+{
+	return mbr.DiskPartition[DriveNumber].BeginLBA+1;//1 is boot sector
+}
+
+/// <summary>
+	///This Function Return Size Of Sector Bitmap Table
+/// </summary>
+unsigned int GetSectorBitmapSize(short DriveNumber )
+{
+	return CalculatSBitmapSize(mbr.DiskPartition[DriveNumber].SizeLBA) ;
+}
+
+/// <summary>
+	///SectorBitmap is Table That show which sector in data section(after BootSector & SectorBitmap) is allocated or unallocated.
+	///SectorNumber Is Start From Root To (Root+SBitmap).
+	///For Example IsAllocateSBitmapAtDrive(0,124); SectorNumber Convert to SectorNumber=124-RootLBA
+/// </summary>
+bool IsAllocateSBitmapAtDrive(short DriveNumber ,unsigned int SectorNumber )//is start from 0 to ...
+{
+	if(DriveNumber==-1) 
+	{
+		kprintf("IsAllocateSBitmapAtDrive:This Drive Is Not Exist.");
+		return false;
+	}
+	//printf("SectorNumber=%d GetRootLBA(DriveNumber)=%d",SectorNumber,GetRootLBA(DriveNumber));getch();
+	SectorNumber-=GetRootLBA(DriveNumber);
+	if((signed)SectorNumber<0){//For Error Kernel Debuging
+		kprintf("IsAllocateSBitmapAtDrive: SectorNumber Is Not Valid Value,It Is Negative Value[%d]",SectorNumber);
+		return false;
+		}
+
+	char Sector[SECTOR_SIZE];
+	int ByteBitmap=SectorNumber%(SECTOR_SIZE*8);
+	int SBitmap_LBA=(int)ceill(SectorNumber/(SECTOR_SIZE*8));
+	HDD_RW(GetSectorBitmapLBA(DriveNumber)+SBitmap_LBA, HD_READ, 1, Sector );
+	int index=(int)ceill(ByteBitmap/8);
+	//printf("RootLBA=%d SectorNumber=%d \nRead:LBA=%d IndexByte=%d Sector[index]=%2X",GetRootLBA(DriveNumber) ,SectorNumber ,GetSectorBitmapLBA(DriveNumber)+SBitmap_LBA ,index ,Sector[index] );getch();
+	return ( ((Sector[index]>>(ByteBitmap%8)) & 0x01)==0x01 ? true :false);
+}
+
+/// <summary>
+	///Scope Is Private.
+	/// This Function allocate One Sector in Sector Bitmap.		
+	///SectorNumber Is Start From Root To (Root+SBitmap).
+	///For Example AllocateSector(FIRST_PARTITION,124); SectorNumber Convert to SectorNumber=124-RootLBA
+	///Important:Is Not valid Input  Value[0...StartRoot] For SectorNumber Becuse It Converted To Negative Value.
+/// </summary>
+static void AllocateSector(short DriveNumber ,unsigned int SectorNumber )//is start from 0 to ...
+{
+	if(DriveNumber==-1) 
+	{
+		kprintf("AllocateSector:This Drive Is Not Exist.");
+		return;
+	}
+	SectorNumber-=GetRootLBA(DriveNumber);
+	if((signed)SectorNumber<0){//For Error Kernel Debuging
+		kprintf("AllocateSector: SectorNumber Is Not Valid Value,It Is Negative Value[%d]",(signed)SectorNumber);
+		return;
+		}
+		
+	char Sector[SECTOR_SIZE];
+	int ByteBitmap=SectorNumber%(SECTOR_SIZE*8);
+	int SBitmap_LBA=(int)ceill(SectorNumber/(SECTOR_SIZE*8));
+	HDD_RW(GetSectorBitmapLBA(DriveNumber)+SBitmap_LBA, HD_READ, 1, Sector);
+	int index=(int)ceill(ByteBitmap/8);
+	Sector[index]|=0x01<<(ByteBitmap%8);
+	HDD_RW(GetSectorBitmapLBA(DriveNumber)+SBitmap_LBA, HD_WRITE, 1, Sector);
+	//Delete Old Content
+	HDD_RW(GetRootLBA(DriveNumber)+SectorNumber ,HD_WRITE , 1, SetNull(Sector,sizeof(Sector)));	
+}
+
+/// <summary>		
+	/// This Function allocate One Sector in Sector Bitmap.		
+	///SectorNumber Is Start From Root To (Root+SBitmap).
+	///For Example AllocateSBitmapAtDrive(FIRST_PARTITION); SectorNumber Convert to SectorNumber=124-RootLBA
+	///Important:Is Not valid Input  Value[0...StartRoot] For SectorNumber Becuse It Converted To Negative Value.
+	///return:	if 0 then Space is Full Or DriveNumber Is Not Correct Other Value Is Location Of Sector That Allocated[Absolute LBA].
+/// </summary>
+unsigned int AllocateSBitmapAtDrive(short DriveNumber )
+{
+	if(DriveNumber==-1) 
+	{
+		kprintf("AllocateSBitmapAtDrive:This Drive Is Not Exist.");
+		return 0;
+	}
+	unsigned int i=GetRootLBA(DriveNumber);
+	unsigned int To=i+mbr.DiskPartition[DriveNumber].SizeLBA;//(GetSectorBitmapSize(DriveNumber)* SECTOR_SIZE *8);	
+	//printf("i=%d To=%d\n",i,To);getch();getch();getch();
+	for(;i<To;i++){		
+	//	printf("i=%d To=%d\n",i,To);getch();
+		if(IsAllocateSBitmapAtDrive(DriveNumber ,i )==false){			 
+			AllocateSector(DriveNumber ,i); 			
+			return i;
+		}		
+	}	
+	kprintf("AllocateSBitmapAtDrive: Drive %c Is Full.And Can't Allocate Sector!",DriveListName[DriveNumber]);while(true);
+	return 0;
+}
+
+/// <summary>		
+	/// This Function Unallocate One Sector From Sector Bitmap.		
+	///SectorNumber Is Start From Root To (Root+SBitmap).
+	///For Example UnAllocateSector(0,124); SectorNumber Convert to SectorNumber=124-RootLBA
+/// </summary>
+void UnAllocateSector(short DriveNumber ,unsigned int SectorNumber )//is start from RootLBA to RootLBA+1...
+{
+	if(DriveNumber==-1) 
+	{
+		kprintf("GetStartOfFrame:This Drive Is Not Exist.");
+		return;
+	}
+	SectorNumber-=GetRootLBA(DriveNumber);
+	if((signed)SectorNumber<0){//For Error Kernel Debuging
+		kprintf("UnAllocateSector: SectorNumber Is Not Valid Value,It Is Negative Value[%d]",SectorNumber);
+		return;
+		}
+
+	char Sector[SECTOR_SIZE];
+	int ByteBitmap=SectorNumber%(SECTOR_SIZE*8);
+	int SBitmap_LBA=(int)ceill(SectorNumber/(SECTOR_SIZE*8));
+	if((unsigned int)SBitmap_LBA>CalculatSBitmapSize(mbr.DiskPartition[DriveNumber].SizeLBA)){
+		kprintf("UnAllocateSector: Error:FS.C The Sector Mitmap Size Is Less Than SectorNumber.");
+		HALT();
+	}
+	HDD_RW(GetSectorBitmapLBA(DriveNumber)+SBitmap_LBA, HD_READ, 1, Sector);
+	int index=(int)ceill(ByteBitmap/8);
+	Sector[index]&=~(0x01<<(ByteBitmap%8));	
+	HDD_RW(GetSectorBitmapLBA(DriveNumber)+SBitmap_LBA, HD_WRITE, 1, Sector);	
+}
+
+/// <summary>		
+	///This Function Is For Checking The Name Of Drive Is Valid.		
+	///If Is Valid Name[C,D,E,F] Return True Other Value Return False.
+/// </summary>
+bool IsValidDriveName(char DriveName)
+{
+	unsigned int i=0;
+	for(i=0;i<sizeof(DriveListName);i++){
+		if(DriveListName[i]==DriveName)
+			return true;
+	}
+	return false;
+}
+
+/// <summary>		
+	///This Function Is Make Header Format With IsEOF & OffSet.		
+	///IsEOF Is Boolean & OffSet Is 9bit unsigned short.
+/// </summary>
+unsigned short MakeHeaderFile(bool IsEOF,unsigned short OffSet)
+{
+	unsigned short Header=0;
+	if(IsEOF==true) Header|=0x8000;		//Insert EOF
+	OffSet=(OffSet & 0x1FF)<<6;			//Insert OffSet	
+	Header|=OffSet;						
+	return Header; 
+}
+
+/// <summary>		
+///This Function Is Make Flags [Frame Feild].
+///Property:{NormalFile,ReadOnlyFile,HidenFile,SystemFile,SubDirectory} ,4bit.
+///Delete: Type Is Bool And Determined That This File Is Delete ,1bit.
+///Authentication:{ReadAuthentication,WriteAuthentication,FolderDirAuthentication} ,3bit.
+/// </summary>
+unsigned char MakeFlagsFrame(enum FrameFlagsPropertyEnum Property,bool Delete ,enum FrameFlagsAuthenticationEnum Authentication)
+{
+	// Bit[0,1,2,3]=File Properties | Bit[4]=Delete | Bit[5,6,7]=Authentication
+	return (Property & 0x0F) | (Delete==true ? 0x08 : 0x00) | (Authentication & 0xE0);
+}
+
+/// <summary>		
+	///This Function Is To Check That This Property Is In The Flags Frame .		
+	///Property{NormalFile,ReadOnlyFile,HidenFile,SystemFile,SubDirectory}.
+	///If Property Is There Return True Otherwise Return False.
+/// </summary>
+
+bool IsFrameProperty(unsigned char	Flags ,enum FrameFlagsPropertyEnum Property )
+{
+	return (((Property & 0x0F) & (Flags & 0x0F))==(Property & 0x0F) ? true : false);
+}
+
+/// <summary>		
+	///This Function Is To Search Frame In Directory.		
+	///Name:			 String That Search Frame Is Compare With This{If Frame Is File The Name Contain FileName and File Extention}.
+	///StartOfFrame:	 Determine That Start Of Search Is Begin From Which Frame Of First Paket.
+	///IsDirectory:		 Determine That Frame To Search Must Be File Or Directory.
+	///HowManyPaketLoad: This Not Input,It Is OutPut By Refrence.And Determined How Many Paket Or Sector Is Read For This Search.
+	///Important:		 HowManyPaketLoad Is Must Be Zero Becuse Of After Execut This Function This Variable Not Have Correct Value!
+	///If Search Is Find Frame Return Frame Number[Thus It Is Between 0..15] And Not Found Return -1.	
+/// </summary>
+short FindFrameAtLBA(short DriveNumber ,unsigned int LBA ,char *Name ,short StartOfFrame ,bool IsDirectory ,unsigned int *HowManyPaketLoad ,struct Frame *Frame)
+{/* Not Test*/
+	//puts("Start FindFrameAtLBA");getch();
+	//printf("\nFindFrameAtLBA\n");getch();
+	word i;	
+	struct PaketEntry DirPaket;
+	unsigned int LBASearch=LBA;
+	char FileExtention[FILE_EXTENTION_SIZE]={0};	 
+	if(strlen(Name)==0)
+		return -1;
+	if(IsDirectory==false)
+	{		//if Frame is File We Moust Produce	 File Name And File Extention.
+		GetFileExtention(Name ,FileExtention);
+		//printf("FileExtention=%s",FileExtention);  getch();
+		if(strlen(FileExtention)>0)
+			Name[strlen(Name)-strlen(FileExtention)-1]=0;
+	}
+
+	do
+	{	 //printf("IsAllocateSBitmapAtDrive");getch();
+		if(IsAllocateSBitmapAtDrive(DriveNumber ,LBASearch)==false)
+		{
+			kprintf("FindFrameAtLBA: This LBA Not Allocated.[FindFrameAtLBA LBA=%d Name=%s]",LBA ,Name );
+			return -1;
+		}
+		HDD_RW(LBASearch ,HD_READ ,1 ,(void *)&DirPaket );
+		//printf("DirPaket.Header.FrameBitmap=%4X",DirPaket.Header.FrameBitmap);getch();
+		for(i=StartOfFrame;i<FramePerPaket;i++)
+		{
+			//printf("i=%d Name=%s Property=%d\n",i,Name,DirPaket.Frame[i].Flags);getch();			
+			if(IsSetBit((long)DirPaket.Header.FrameBitmap ,i ,false)==true)//Check That Bit i Is 0(False) Then Go Next Frame.
+				continue;
+	/*		printf("i=%d Name1=%s ext1=%s IsDirectory=%d\n",i,Name,FileExtention,IsDirectory);getch();
+			printf("i=%d \n",i);getch();
+			printf("Name2=%s\n",DirPaket.Frame[i].FileName);getch();
+			DirPaket.Frame[i].FileExtention[3]=0;
+			printf("ext2=%s\n",DirPaket.Frame[i].FileExtention);getch();
+			printf("IsDirectory=%d\n",IsFrameProperty(DirPaket.Frame[i].Flags,PropertySubDirectory));getch();
+*/
+			if(Strncmp((char *)DirPaket.Frame[i].FileName,Name,FILE_NAME_SIZE )==0 && Strncmp(DirPaket.Frame[i].FileExtention,FileExtention,FILE_EXTENTION_SIZE )==0 && IsFrameProperty(DirPaket.Frame[i].Flags,PropertySubDirectory)==IsDirectory && IsFrameDelete(DirPaket.Frame[i].Flags)==false)
+			{
+				if(Frame!=0)
+					memcpy(Frame ,&DirPaket.Frame[i] ,sizeof(DirPaket.Frame[i]) );				
+				return i;
+			}				
+		}
+		//printf("\nNext paket");getch();
+		(*HowManyPaketLoad)++;
+		LBASearch=DirPaket.Header.ChildsAddress;
+		StartOfFrame=0;	
+		//printf("IsEOP=%d",IsEOP(DirPaket.Header.PacketHeader));	getch();
+	}while(IsEOP(DirPaket.Header.PacketHeader)==false);	
+	return -1;
+}
+
+/// <summary>		
+	///This Function Is To Creat Frame At LBA Paket.		
+	///LBAPaket: Determined That This Frame Must Be Creat At Which Paket.
+	///Frame:	 This Frame Content Is Write.
+	///If Successful Return Creat Frame Location In LBA,And If UnSuccssful Return 0[Absolute LBA].
+	///Importand This Function Isn't check That This Frame Is Exist.
+/// </summary>
+unsigned int CreatFrameAtLBA(short DriveNumber ,unsigned int LBAPaket ,struct Frame Frame)
+{
+	unsigned char i=0;
+	unsigned int OldLBA ;
+	struct PaketEntry DirPaket={{0}};	
+
+	if(IsAllocateSBitmapAtDrive(DriveNumber ,LBAPaket)==false )
+	{
+		kprintf("CreatFrameAtLBA: Sector %d Is Not Allocated In Sector Bitmap!",LBAPaket);
+		return 0;
+	}
+	//printf("IsDirectroy=%d,%2X ,%2X",IsDirectroy,GetFrameProperty(Frame.Flags),Frame.Flags);  getch();
+	/*if(FindFrameAtLBA(DriveNumber ,LBAPaket ,Frame.FileName ,0 ,IsDirectroy ,&tmp ,NULL )!=-1 )
+	{
+		kprintf("CreatFrameAtLBA: This Frame Already Exist.[%s]",Frame.FileName);
+		return 0;
+	}*/
+	//printf("Start Creat%d\n",LBAPaket);getch();	
+	do{
+		HDD_RW(LBAPaket ,HD_READ ,1 ,(void *)&DirPaket );
+		//printf("LBAPaket=%d \n DirPaket.Header.PacketHeader=%d",LBAPaket,DirPaket.Header.PacketHeader);
+		for(i=0;i<16;i++)
+		{
+			//printf("DirPaket.Header.FrameBitmap=%4X",DirPaket.Header.FrameBitmap);getch();
+			if(DirPaket.Header.FrameBitmap==0xFFFF)	break;	//This Packet Is Full,Thus Go To Next Paket
+			
+			if(IsSetBit((long)DirPaket.Header.FrameBitmap ,i ,false)==true)	//Check That Bit i Is 0(False) Then Creat Directory.
+			{
+				DirPaket.Frame[i]=Frame;//This code must place here becuse Frame Is Change At Below code.				 
+				if(IsFrameProperty(Frame.Flags , PropertySubDirectory)==true )//Just For Directory Header
+				{
+					struct HeaderDir Header={0};					
+					//dump ((char *)&Header,sizeof(Header),false);getch();					
+					Header.FrameBitmap=0;  
+					Header.ParentAddress=LBAPaket;
+					Header.ParentOffSetFrame=i;
+					Header.PacketHeader =EOP | SOP;  
+					//if(Strcmp(Frame.FileName,"User1")==0){printf("ParentOffSetFrame=%d  i=%d\n",Header.ParentOffSetFrame,Header.ParentOffSetFrame);getch();}					
+					DirPaket.Frame[i].PaketAddress =AllocateDirPacketAtDrive(DriveNumber,&Header);					
+				}
+				else														//Just For File	 Header
+				{					
+					struct HeaderFile  Header={0};															
+					Header.FileHeader = EOFP;
+					Header.Next =0;
+					DirPaket.Frame[i].PaketAddress =AllocateFilePacketAtDrive(DriveNumber,&Header);
+				}
+				if(DirPaket.Frame[i].PaketAddress==0)
+					{
+						kprintf("CreatFrameAtLBA: Creat Frame[%s] Is Not Successful.Becuse Creat Paket Return -1!",Frame.FileName );
+						return 0;
+					}
+				SetBit((char *)&DirPaket.Header.FrameBitmap ,i,true); 	//Set Sector Bitmap Becuse Of Now Allocating This Location.			
+				HDD_RW(LBAPaket ,HD_WRITE ,1 ,(void *)&DirPaket );
+				return DirPaket.Frame[i].PaketAddress;   //Absolute LBA
+			}							
+		}		
+		OldLBA=LBAPaket; //Save Old LBA[Becuse May Be Need To Creat New Paket]
+		LBAPaket=DirPaket.Header.ChildsAddress ;
+		//printf("End Paket:%d",IsEOP(DirPaket.Header.PacketHeader));	getch();
+		}while(IsEOP(DirPaket.Header.PacketHeader)==false );
+
+	// printf("New Paket");getch();
+	//Since Here Is For Creat New Paket Becuse Of The Paket Is Full
+	unsigned int NewPaket=CreatPacketAtDrive(DriveNumber);
+	 //printf("New Paket=%d",NewPaket);getch();
+	if(NewPaket==0){
+		kprintf("CreatFrameAtLBA: CreatFrameAtLB Not Finish Successful : Error In ""CreatPacketAtDrive"" Function!");
+		return 0;
+	}else{
+		DirPaket.Header.ChildsAddress=NewPaket; 
+		DirPaket.Header.PacketHeader &=~EOP; 
+		//printf("\nDirPaket.Header.PacketHeader  %d",DirPaket.Header.PacketHeader );	getch();
+		HDD_RW(OldLBA ,HD_WRITE ,1 ,(void *)&DirPaket );
+		SetNull((char *)&DirPaket ,sizeof(DirPaket) );
+		DirPaket.Header.ParentAddress =OldLBA; 
+		DirPaket.Header.PacketHeader =EOP; 
+		HDD_RW(NewPaket ,HD_WRITE ,1 ,(void *)&DirPaket );
+		//PrintPaketEntry(NewPaket ,false);
+		return CreatFrameAtLBA(DriveNumber ,NewPaket ,Frame );// Recursive To Write Frame At Paket
+	}
+	return 0;
+}
+
+/// <summary>		
+	///This Function Is To Creat Packet At Drive.		
+	///DriveNumber: Determined That This Packet Must Be Creat At Which Drive{PARTITION_FIRST ,PARTITION_SECOND ,PARTITION_THIRD ,PARTITION_FOURTH }.	
+	///Return: If 0=Error Occur Otherwise Return Absolute Address Of Creat Paket[from Root to drive size]
+/// </summary>
+unsigned int CreatPacketAtDrive(short DriveNumber )
+{
+	unsigned int NewPaket=AllocateSBitmapAtDrive(DriveNumber);
+	if(NewPaket==0){
+		kprintf("CreatPacketAtDrive: CreatPacketAtDrive Not Finish Successful : Error In ""AllocateSBitmapAtDrive"" Function!");
+		return 0;
+	}else
+		return NewPaket;
+}
+/// <summary>		
+	///This Function Is To Creat Directroy Packet At Drive.
+	///DriveNumber: Determined That This Packet Must Be Creat At Which Drive{PARTITION_FIRST ,PARTITION_SECOND ,PARTITION_THIRD ,PARTITION_FOURTH }.	
+	///Header:	This is Directory Header{FrameBitmap,PacketHeader,ParentAddress,ChildsAddress,ParentOffSetFrame}
+	///Return:	If 0=Error Occur Otherwise Return Absolute Address Of Creat Paket[from Root to drive size]
+/// </summary>
+unsigned int AllocateDirPacketAtDrive(short DriveNumber ,struct HeaderDir *Header )
+{
+	unsigned int NewPaket=AllocateSBitmapAtDrive(DriveNumber);
+	struct PaketEntry DirPaket={{0}};
+	
+	if(NewPaket==0){
+		kprintf("AllocateDirPacketAtDrive: CreatPacketAtDrive Not Finish Successful : Error In ""AllocateSBitmapAtDrive"" Function!");
+		return 0;
+	}else  {
+		/*printf("Do You Want Dump Allocate Dir %4X?",Header->FrameBitmap);
+		if(getch()=='y')dump( &DirPaket	,512,true);*/
+		//initialize
+		memcpy((void *)&DirPaket ,Header ,sizeof(*Header));
+		//printf("\n====>PacketHeader=%2X  %d\n",DirPaket.Header.ParentOffSetFrame,sizeof(*Header)  );getch();
+		/*printf("AllocateDirPacketAtDrive:\n");*/
+		HDD_RW(NewPaket ,HD_WRITE ,1 ,(void *)&DirPaket );
+		//dump( &DirPaket	,512,true);
+		return NewPaket;	
+	}		
+}
+
+/// <summary>		
+	///This Function Is To Creat File Packet At Drive.
+	///DriveNumber: Determined That This Packet Must Be Creat At Which Drive{PARTITION_FIRST ,PARTITION_SECOND ,PARTITION_THIRD ,PARTITION_FOURTH }.	
+	///Header:	This is File Header{FileHeader,ParentAddress,ChildsAddress}
+	///Return:	If 0=Error Occur Otherwise Return Absolute Address Of Creat Paket[from Root to drive size]
+/// </summary>
+unsigned int AllocateFilePacketAtDrive(short DriveNumber ,struct HeaderFile *Header )
+{
+	unsigned int NewPaket=AllocateSBitmapAtDrive(DriveNumber);
+	struct PaketFile FilePaket={{0}};
+	FilePaket.Size.TotalSector=0;  
+
+
+	if(NewPaket==0){
+		kprintf("AllocateFilePacketAtDrive: CreatPacketAtDrive Not Finish Successful : Error In ""AllocateSBitmapAtDrive"" Function!");
+		return 0;
+	}else  {
+		memcpy((void *)&(FilePaket.Header) ,Header ,sizeof(*Header));		
+		/*printf("AllocateDirPacketAtDrive:\n");*/
+		HDD_RW(NewPaket ,HD_WRITE ,1 ,(void *)&FilePaket );
+		//dump( &DirPaket	,512,true);
+		return NewPaket;	
+	}		
+}
+/// <summary>		
+	///This Function Is Return Destination Directory Or File Of Path.		
+	///Example:	GetPathName("C:\\Dir1\\MyFile.cpp" ,FileName);   GetPathName("C:\\Dir1\\SubDir" ,FileName);
+	///This Funtion return "MyFile.cpp"	And "SubDir".
+	///Path :	Directory Path That To Find Destination Name.
+	///Name:	Is OutPut For This Function.
+/// </summary>
+short GetDestinationPath(char *Path ,char *Name)
+{
+	int PathLen=strlen(Path);
+	short i;
+	for(i=(Path[PathLen-1]=='\\' ?PathLen-1 :PathLen )-1;i>=0 ;i-- )
+	{		
+		if(Path[i]=='\\')
+		{
+			 memcpy(Name ,(void *)&Path[i+1] ,(Path[PathLen-1]=='\\' ?PathLen-1 :PathLen )-1-i);
+			 Name[(Path[PathLen-1]=='\\' ?PathLen-1 :PathLen )-1-i]=0;
+			 return 0;
+		}
+	}
+	return -1;
+}
+/// <summary>		
+	///This Function Is Return File Extention .		
+	///Example:	GetFileExtention("C:\\Dir1\\MyFile.cpp" ,FileExtention);
+	///This Funtion return "cpp"
+	///FileName :	File Name That To Find Extention .
+	///Extention:	Is OutPut For This Function.
+/// </summary>
+short GetFileExtention(char *FileName ,char *Extention)
+{
+	int FileNameLen=strlen(FileName);
+	short i=StrFind(FileName,".");
+	if(i==-1)
+		return -1;
+	memcpy(Extention,(void *)&FileName[i+1] ,FileNameLen-i);
+	return 0;
+}
+/// <summary>		
+	///This Function Is Return Directory In Path.		
+	///Example:	GetDirInPath("C:\\Dir1\\MyFile.cpp" ,0 ,Dir);
+	///Path :	C:\\Dir1\\MyFile.cpp	
+	///Important: If Result is -1 ==>Dir Not Change Thus Path Reffer Old Value.
+/// </summary>
+short GetDirInPath(const char *Path ,short Start ,char *Dir )
+{	
+	short BeginStr,EndStr;
+	if((BeginStr=StrnFind(Path ,Start ,"\\"))!=-1 )
+	{
+		if((EndStr=StrnFind(Path ,BeginStr+1 ,"\\"))!=-1 )
+		{
+			//printf("Path=%s ,EndStr=%d strlen=%d",Path,EndStr,strlen(Path));   getch();
+			memcpy((void *)Dir ,(void *)&Path[BeginStr+1] ,EndStr-BeginStr-1);
+			Dir[EndStr-BeginStr-1]=0;
+			return BeginStr;
+		}else{
+			memcpy((void *)Dir ,(void *)&Path[BeginStr+1] ,strlen(Path)-BeginStr);
+			Dir[strlen(Path)-BeginStr-1]=0;
+			return BeginStr;
+		}
+	}
+	return -1;
+}
+/// <summary>		
+	///This Function Is Return LBA Of Start Of Paket that Relative To Frame Name.		
+	///Name: Frame Name[Dir Name Or File Name with Extention].{If Frame Is File then IsDirectory parameter Is Set Flase}.
+	///IsDirectory: Determine That Frame To Search Must Be File Or Directory
+	///unsigned *PE_LBA:Is Location Of Paket Entery That This Frame There Is At Once.
+	///Return Value Is 0 ==>Not Found Location Of Frame, Other Value Is Start Of Frame[Absolute LBA](Frame.Address).
+/// </summary>
+unsigned int GetStartOfFrame(char *Path,char *FrameName ,bool IsDirectory ,short *FrameNO ,unsigned *PE_LBA)
+{		
+	unsigned int StartLBA;
+	struct Frame FrameInfo={{0}};
+	unsigned int HowManyPacketLoaded;
+	short StartPath=0;
+	short DriveNumber=GetDriveNumber(Path[0]);
+	char BufDir[255]={0};
+	char LastDir[FILE_NAME_SIZE]={0};
+	int PathLen;
+	*FrameNO=-1;
+
+	if(DriveNumber==-1) 
+	{
+		kprintf("GetStartOfFrame:This Drive Is Not Exist.[%c:\\]",Path[0]);
+		return 0;
+	}
+
+	if(Path[strlen(Path)-1]=='\\')
+		Path[strlen(Path)-1]=0;
+
+	PathLen=strlen(Path);
+	//printf("Path=%s",Path);getch();
+	if(GetDestinationPath(Path,LastDir)==-1 && PathLen>3 )//BUG :For This Example GetStartOfFrame("C:\\" ,"Farshad0",true);
+	{
+		kprintf("GetStartOfFrame:The Path Isn't Correct.[%s]",Path);
+		return 0;
+	}
+	//printf("LastDir=%s",LastDir);getch();
+	StartLBA=GetRootLBA(DriveNumber);
+	if(StartLBA==0)
+	{
+		kprintf("GetStartOfFrame: RootLBA Not Allocated.");
+		return 0;
+	}
+	do{	
+		StartPath++;  		
+		StartPath=GetDirInPath(Path,StartPath,BufDir);		
+		//printf("StartPath=%d  BufDir=%d",StartPath,BufDir);getch();
+		if(StartPath==-1)
+		{			
+			if(Strcmp(LastDir ,BufDir )==0)
+			{
+				if((*FrameNO=FindFrameAtLBA(DriveNumber ,StartLBA ,FrameName ,0 ,IsDirectory ,&HowManyPacketLoaded ,&FrameInfo ))==-1)
+				{
+					kprintf("GetStartOfFrame: Path Not Found And Halted At This Directory[%s].!",BufDir);
+					return 0;
+				}else{
+					//printf("StartPath=%d ,StartLBA=%d FrameInfo.PaketAddress=%d",StartPath ,StartLBA,FrameInfo.PaketAddress);getch();										
+					*PE_LBA=StartLBA;
+					return FrameInfo.PaketAddress ;//Return Location
+					}
+			}else{
+				//printf("StartPath=%d ,StartLBA=%d",StartPath ,StartLBA);getch();
+				kprintf("GetStartOfFrame: Path Not Found And Halted At This Directory[%s].!",BufDir);
+				return 0;			
+			}			
+		}			
+		//printf("Befour)BufDir=%s , StartLBA=%d",BufDir ,StartLBA );		getch();
+		if(FindFrameAtLBA(DriveNumber ,StartLBA ,BufDir ,0 ,true /*BUG: Always Befor File Is SubDirectory*/ ,&HowManyPacketLoaded ,&FrameInfo )==-1)
+		{
+			kprintf("GetStartOfFrame: Frame Not Found And Halted At This Offset[%d],SubDirectory[%s],LBA=[%d].!",HowManyPacketLoaded,BufDir,StartLBA);
+			return 0;
+		}
+		StartLBA=FrameInfo.PaketAddress;		
+		//printf("After)BufDir=%s , StartLBA=%d",BufDir ,StartLBA );		getch();
+	}while(StartLBA!=0 );
+	return 0;
+}
+/// <summary>		
+	///This Function Is Creat Path Directory.		
+	///Dirname Is 11Bit.
+	///Return :CreatDirResult
+/// </summary>
+enum CreatDirResult
+CreatDir(const char *FullPath ,bool IsSystem ,bool IsHiden ,bool IsReadOnly ,enum FrameFlagsAuthenticationEnum Authentication)
+{
+	char *Path=(char *)malloc(strlen(FullPath));	
+	Strcpy(Path ,FullPath);
+	char DirName[FILE_NAME_SIZE]={0};	
+	char DestDirName[FILE_NAME_SIZE]={0};
+	short DriveNumber=GetDriveNumber(Path[0]);
+	int Property=PropertyNormalFile;
+	short StartPath=0;
+	unsigned int StartDir,OldStartDir,NotUsed;
+	struct Frame Frame;
+	
+	Property =(enum FrameFlagsPropertyEnum)(IsSystem==true ? PropertySystemFile : PropertyNormalFile) | (IsHiden==true ? PropertyHidenFile : PropertyNormalFile) | (IsReadOnly==true ? PropertyReadOnlyFile : PropertyNormalFile) | PropertySubDirectory ;
+	TIME time;
+	DATE date;
+	if(DriveNumber==-1) 
+	{
+		kprintf("CreatDir:This Drive Is Not Exist.[%c:\\]",Path[0]);
+		free((unsigned int *)Path);
+		return CreatDir_DriveNotExist;
+	}
+	if(Path[strlen(Path)-1]=='\\')
+		Path[strlen(Path)-1]=0;
+
+	if(GetDestinationPath(Path,DestDirName)==-1)
+	{
+		kprintf("Path Is Not Correct[%s]",Path);
+		free((unsigned int *)(unsigned int *)Path );
+		return CreatDir_InvalidPath;
+	}
+	StartDir=GetRootLBA(DriveNumber);
+
+	do{	
+		//printf("DirName=%s",DestDirName);getch();		
+		StartPath++;  		
+		StartPath=GetDirInPath(Path,StartPath,DirName);
+		if(StartPath==-1)
+			{
+				kprintf("CreatDir: This Directory Already Exist[Path%s].",Path);
+				free((unsigned int *)Path);
+				return CreatDir_AlreadyExist;
+			}
+		//printf("StartPath=%d StartDir%d ,DirName%s",StartPath ,StartDir ,DirName );getch();		
+		if(FindFrameAtLBA(DriveNumber ,StartDir ,DirName ,0 ,true ,&NotUsed /* HowManyPaketLoad */ ,&Frame )==-1)
+		{//Not Found Path Therefore I Creat Rest Of the Path .
+			//printf("FindFrameAtLBA Return -1");getch();
+			do{
+				struct Frame Frame={{0}};
+				gettime(&time);
+				getdate(&date);				
+				Strncpy(Frame.FileName ,DirName ,FILE_NAME_SIZE );				 
+				Frame.CreatFile= CDateTimeToFileDate(time,date); 
+				Frame.ModifiedFile= Frame.CreatFile; //For First :CreatTime And Modified Is Equal.
+				Frame.Flags =MakeFlagsFrame((enum FrameFlagsPropertyEnum)Property ,false ,Authentication );  
+				OldStartDir=StartDir;
+				//printf("StartPath=%d StartDir%d ,DirName=%s Flag=%d",StartPath ,StartDir ,DirName ,Frame.Flags );getch();				
+				if((StartDir=CreatFrameAtLBA(DriveNumber ,OldStartDir ,Frame ))==0)
+				{//Error Eccur!
+					kprintf("CreatDir: In Creat CreatFrameAtLBA Occur Exception At Directory Name=%s[DriveNum=%d OldStartDir=%d]",DirName,DriveNumber ,OldStartDir );
+					free((unsigned int *)Path );
+					return CreatDir_Exception;
+				}
+				else
+				{
+					#ifdef ZFS_DEBUG
+						kprintf("CreatDir: Creat Directory Is Successful[Name=%s ,LBA=%d ].",DirName ,OldStartDir);
+					#endif
+				}
+				StartPath++;				
+				if((StartPath=GetDirInPath(Path,StartPath,DirName))==-1)
+				{					
+					if(Strcmp(DestDirName,DirName)==0)
+					{
+						#ifdef ZFS_DEBUG
+							kprintf("CreatDir: Finish Successful End Dir:[Name=%s ,LBA=%d ].",DirName ,OldStartDir);
+						#endif
+						return CreatDir_Success;
+					}
+					else
+					{
+						#ifdef ZFS_DEBUG
+							kprintf("CreatDir: Creat Directory Is Not Creat Full Path And End Dir:[Name=%s ,LBA=%d ].",DirName ,OldStartDir);
+						#endif
+						free((unsigned int *)Path);
+						return CreatDir_InComplate;
+					}					
+				}
+				//printf("DestDirName=%s DirName=%s  StartPath=%d",DestDirName,DirName,StartPath);getch();
+			}while(1);			
+		}
+		//printf("FindFrameAtLBA Return <>-1");getch();
+		OldStartDir=StartDir;		
+		StartDir=Frame.PaketAddress /*+ mbr.DiskPartition[DriveNumber].BeginLBA*/ ;
+		//printf("StartDir=%d",StartDir);
+		//printf("OldStartDir=%d ,StartDir=%d ",OldStartDir,StartDir); getch();
+		//StartPath++;  		
+		//StartPath=GetDirInPath(Path,StartPath,DirName);
+		//printf("StartPath=%d StartDir%d ,DirName%s",StartPath ,StartDir ,DirName );getch();
+
+		//OldStartDir=StartDir;
+		////StartDir=GetStartOfFrame(Path,DirName,true);
+		//StartDir=FindFrameAtLBA(DriveNum ,StartDir ,DirName ,0 ,true ,NULL ,&Frame );
+		//printf("StartDir%d ,DirName%s",StartDir ,DirName	);getch();
+	}while(StartPath!=-1);
+	free((unsigned int *)Path );
+	return CreatDir_Success;
+}
+
+unsigned int CalculatFileSize(char *Path)//By Byte
+{
+	char FileName[FILE_NAME_SIZE+FILE_NAME_SIZE]={0};
+	char *PathOnly=(char *)malloc(strlen(Path));	
+	struct PaketFile *PF=(struct PaketFile *)malloc(sizeof(struct PaketFile));
+	short FrameFindNo=0;
+	unsigned int LBA_PE,SizeFile;
+	if(GetDestinationPath(Path,FileName)==-1)
+		{
+			kprintf("CalculatFileSize: Path Is InValid[%s].!",Path);
+			return 0;
+		}
+	Strncpy(PathOnly ,Path ,strlen(Path)-strlen(FileName));	
+	//printf("PathOnly=%s FileName=%s",PathOnly,FileName);getch();
+	LBA_PE=GetStartOfFrame(PathOnly ,FileName ,false ,&FrameFindNo ,NULL);
+	//printf("LBA_PE=%d FrameFindNo=%d",LBA_PE,FrameFindNo);getch();
+	if(LBA_PE==0)
+	{
+		kprintf("CalculatFileSize: File Not Found[%s].",Path);
+		return 0;
+	}
+	HDD_RW(LBA_PE ,HD_READ ,1 ,(void *)PF);	
+	SizeFile=CSectroToByte(PF->Size.TotalSector);	
+	free((unsigned int *)PathOnly);
+	free((unsigned int *)PF);
+	return SizeFile;
+}
+/// <summary>		
+	///This Function Is Creat File At The Path.			
+	///Return:enum CreatFileResult
+/// </summary>
+enum CreatFileResult
+CreatFile(const char *FilePath ,bool IsSystem ,bool IsHiden ,bool IsReadOnly ,enum FrameFlagsAuthenticationEnum Authentication)
+{	
+	char *Path=(char *)malloc(strlen(FilePath));	
+	Strcpy(Path ,FilePath);
+	char FileFullName[FILE_NAME_SIZE+FILE_EXTENTION_SIZE]={0};
+	char FileName[FILE_NAME_SIZE]={0};
+	char DestFolder[FILE_NAME_SIZE]={0};
+	char FileExtention[FILE_EXTENTION_SIZE]={0};
+	short DriveNum=GetDriveNumber(Path[0]);
+	int Property=(IsSystem==true ? PropertySystemFile : PropertyNormalFile) | (IsHiden==true ? PropertyHidenFile : PropertyNormalFile) | (IsReadOnly==true ? PropertyReadOnlyFile : PropertyNormalFile);	
+	unsigned int StartDir=0;
+	TIME time;
+	DATE date;
+
+	if(DriveNum==-1){
+		kprintf("CreatFile: This Drive Is Not Exist.[%c:\\]",Path[0]);
+		free((unsigned int *)Path);
+		return CreatFile_DriveNotExist;
+	}
+
+	if(GetDestinationPath(Path,FileFullName)==-1)
+	{
+		kprintf("CreatFile: Path Is Not Correct[%s]",Path);
+		free((unsigned int *)Path );
+		return CreatFile_InvalidPath;
+	}
+
+	Strncpy(FileName,FileFullName,FILE_NAME_SIZE); 
+	GetFileExtention(FileName ,FileExtention);
+	if(strlen(FileExtention)>0)
+		FileName[strlen(FileName)-strlen(FileExtention)-1]=0;
+
+	//printf("FileName=%s ,FileExtention=%s FileFullName=%S",FileName,FileExtention,FileFullName);getch();
+
+	Path[strlen(Path)-strlen(FileName)-strlen(FileExtention)-1]=0;//Remove File Name With Extention
+	//printf("\nPath=%s",Path);getch();
+	//if(GetStartOfFrame(Path ,FileName ,false)!=0 )
+	//{
+	//  kprintf("CreatFile: File Is Exist[%s]",FileName);
+	//  return -1;
+	//}
+	if(strlen(Path)<=3)//C:\MyFile.txt
+		StartDir=GetRootLBA(DriveNum);
+	else{
+		if(GetDestinationPath(Path ,DestFolder)==-1)
+		{			
+			kprintf("CreatFile: Path Is Not Correct[%s]",Path);
+			free((unsigned int *)Path );
+			return CreatFile_InvalidPath;
+		}
+		Path[strlen(Path)-strlen(DestFolder)-1]=0;//Remove DestFolder
+		//printf("\nPath=%s ,DestFolder=%s",Path,DestFolder);getch();
+		StartDir=GetStartOfFrame(Path ,DestFolder ,true ,NULL ,NULL);		
+	}
+
+	if(StartDir==0)
+	{
+		kprintf("CreatFile: Path Is Not Exist[%s]",Path);
+		free((unsigned int *)Path);
+		return CreatFile_PathNotExist;
+	}
+	if(FindFrameAtLBA(DriveNum ,StartDir ,FileFullName ,0 ,false,NULL,NULL)!=-1)
+	{
+		kprintf("CreatFile: File Is Already Exist[%s]",FileName);
+		free((unsigned int *)Path);
+		return CreatFile_AlreadyExist;
+	}
+	struct Frame Frame={{0}};
+	gettime(&time);
+	getdate(&date);				
+	Strncpy(Frame.FileName ,FileName ,FILE_NAME_SIZE );
+	Strncpy(Frame.FileExtention ,FileExtention ,FILE_EXTENTION_SIZE );	
+	Frame.CreatFile= CDateTimeToFileDate(time,date); 
+	Frame.ModifiedFile= Frame.CreatFile; //For First :CreatTime And Modified Is Equal.
+	Frame.Flags =MakeFlagsFrame((enum FrameFlagsPropertyEnum)Property ,false ,Authentication );  
+	//printf("StartPath=%d StartDir%d ,DirName%s",StartPath ,StartDir ,DirName );getch();
+	if((StartDir=CreatFrameAtLBA(DriveNum ,StartDir ,Frame ))==0)
+	{//Error Eccur!
+		kprintf("CreatFile: In Creat Frame Occur Exception At Directory Name=%s[CreatFrameAtLBA(DriveNum=%d ,OldStartDir=%d ,Frame) Is Return False]",DestFolder,DriveNum ,StartDir );
+		free((unsigned int *)Path );
+		return CreatFile_Exception;
+	}
+	else
+	{
+		#ifdef ZFS_DEBUG
+			kprintf("CreatFile: Creat File Is Successful[Name=%s ,LBA Creation=%d ].",FileName ,StartDir);
+		#endif
+	}
+	//printf("FilePath=%s",FilePath);getch();
+   free((unsigned int *)Path);
+   return CreatFile_Success;
+}
+
+
+short Delete(char *Path ,bool ToRecycle ,bool IsDirectory)
+{//Test
+	char FileFullName[FILE_NAME_SIZE+FILE_EXTENTION_SIZE]={0};
+	char FileName[FILE_NAME_SIZE]={0};
+	char DestFolder[FILE_NAME_SIZE]={0};
+	char FileExtention[FILE_EXTENTION_SIZE]={0};
+	short DriveNum=GetDriveNumber(Path[0]);	
+	short FrameNO;
+	struct PaketEntry DirPaket={{0}};
+	unsigned int PE_LBA,Child_LBA;	
+	
+
+	if(DriveNum==-1){
+		kprintf("DeleteFile: Path Name Is Invalid Drive Name.[%c:\\]",Path[0]);
+		return -1;
+	}
+
+	if(GetDestinationPath(Path,FileFullName)==-1)
+	{
+		kprintf("CreatFile: Path Is Not Correct[%s]",Path);
+		return -1;
+	}
+
+	Strncpy(FileName,FileFullName,FILE_NAME_SIZE); 
+	GetFileExtention(FileName ,FileExtention);
+	if(strlen(FileExtention)>0)
+		FileName[strlen(FileName)-strlen(FileExtention)-1]=0;
+
+	//printf("FileName=%s ,FileExtention=%s FileFullName=%S",FileName,FileExtention,FileFullName);getch();
+
+	Path[strlen(Path)-strlen(FileName)-strlen(FileExtention)-1]=0;//Remove File Name With Extention
+	
+	//printf("\nPath=%s",Path);getch();
+	Path[strlen(Path)-strlen(DestFolder)-1]=0;//Remove DestFolder
+	//printf("\nPath=%s ,FileFullName=%s",Path,FileFullName);getch();	
+	if(GetStartOfFrame(Path ,FileFullName ,IsDirectory ,&FrameNO ,&PE_LBA)==0)
+	{
+		kprintf("DeleteFile: Path Is Not Exist[%s]",Path);
+		return -1;
+	}
+	//printf("FrameNO=%d",FrameNO);getch();	
+	//printf("PE_LBA=%d",PE_LBA);getch();
+
+	HDD_RW(PE_LBA ,HD_READ ,1 ,&DirPaket );
+	//printf("Name=%s FrameBitmap=%4X",DirPaket.Frame[0].FileName ,DirPaket.Header.FrameBitmap);getch();
+	if(ToRecycle==true)
+	{
+		DirPaket.Frame[FrameNO ].Flags |=DELETE_FLAG;
+		HDD_RW(PE_LBA ,HD_WRITE ,1 ,&DirPaket );
+		return 0;
+	}
+	else
+	{
+		if(IsDirectory==false)
+			DeleteContent(DriveNum , DirPaket.Frame[FrameNO].PaketAddress);//Delete Content File		
+		DirPaket.Frame[FrameNO].Flags |=DELETE_FLAG;
+		DirPaket.Header.FrameBitmap &=~(1<<(FrameNO));//First Remove This FrameNO From Packet FrameBitmap.
+		UnAllocateSector(DriveNum ,DirPaket.Frame[FrameNO].PaketAddress );		
+		HDD_RW(PE_LBA ,HD_WRITE ,1 ,&DirPaket );
+		if(DirPaket.Header.ParentAddress!=0 && DirPaket.Header.FrameBitmap==0)
+		{
+			//Vaghti ke ye paket kamel frameash delete shodan bayad khode paket delete shavad ke 2halat dare.
+			UnAllocateSector(DriveNum ,PE_LBA);			
+			if(IsSOP(DirPaket.Header.PacketHeader)==false && IsEOP(DirPaket.Header.PacketHeader)==true)
+			{
+				PE_LBA=DirPaket.Header.ParentAddress;//Save Parent Address To PE_LBA
+				HDD_RW(PE_LBA ,HD_READ ,1 ,&DirPaket );
+				DirPaket.Header.PacketHeader |=EOP;
+				DirPaket.Header.ChildsAddress =0;
+				HDD_RW(PE_LBA ,HD_WRITE ,1 ,&DirPaket );
+			}
+			else if(IsSOP(DirPaket.Header.PacketHeader)==false && IsEOP(DirPaket.Header.PacketHeader)==false)
+			{
+				PE_LBA=DirPaket.Header.ParentAddress;//Save Parent Address To PE_LBA
+				Child_LBA=DirPaket.Header.ChildsAddress;
+				HDD_RW(PE_LBA ,HD_READ ,1 ,&DirPaket );				
+				DirPaket.Header.ChildsAddress =Child_LBA;
+				HDD_RW(PE_LBA ,HD_WRITE ,1 ,&DirPaket );
+			}
+		}else
+			HDD_RW(PE_LBA ,HD_WRITE ,1 ,&DirPaket );
+
+		//printf("FrameNO=%d ~(1<<(*FrameNO))=%2X FrameBitmap=%4X DirPaket.Header.ParentAddress=%d",(FrameNO),(short)~(1<<(FrameNO)),DirPaket.Header.FrameBitmap,DirPaket.Header.ParentAddress);getch();
+		
+		
+	}
+	return 0;
+}
+
+
+bool FindFileInPath(const char *Path,const char *FileName)
+{
+	return (GetStartOfFrame((char *)Path,(char *)FileName ,false ,NULL ,NULL)==0 ? false : true); 
+}
+bool FindFolderInPath(const char *Path,const char *FolderName)
+{	
+	return (GetStartOfFrame((char *)Path,(char *)FolderName ,true ,NULL ,NULL)==0 ? false : true); 
+}
+/// <summary>		
+	///This Function Is Open File.		
+	///char *Path: 
+	///enum FileOpenMode Mode:
+/// </summary>
+FILE *fopen(const char *FilePath ,enum FileOpenModeEnum Mode)
+{
+	char *Path=(char *)kmalloc(strlen(FilePath),"File Open[Path]");
+	Strcpy(Path ,FilePath);
+	char FileFullName[FILE_NAME_SIZE+FILE_EXTENTION_SIZE]={0};
+	FILE *fp=(FILE *)kmalloc(sizeof(FILE),"File Open Pointer");	
+	fp->FirstPaketFile=(struct PaketFile *)kmalloc(sizeof(struct PaketFile),"File Open[Paket File]");
+	fp->BufferAddress=(struct PaketFile *)kmalloc(sizeof(struct PaketFile),"File Open[Paket File]");
+	fp->BufferRW=(struct SectorContent *)kmalloc(sizeof(struct SectorContent),"File Open[Sector Content]");
+
+	char *PathOnly=(char *)kmalloc(strlen(Path),"File Open");	
+	if(fp==NULL || PathOnly==NULL || fp->FirstPaketFile==NULL || fp->BufferAddress==NULL || fp->BufferRW==NULL)
+	{
+		kprintf("fopen: Out Of Memory Exception !");
+		goto ExceptionMemory;		
+	}
+	GetDestinationPath(Path,FileFullName);	
+	Strncpy(PathOnly ,Path, strlen(Path)-strlen(FileFullName));
+	fp->DriveNumber= GetDriveNumber(Path[0]);
+	fp->Mode =Mode;	 
+Fopen_Find:	
+	fp->LBA=fp->FirstLBA= GetStartOfFrame(PathOnly ,FileFullName ,false ,NULL ,NULL);
+	if(fp->LBA==0)//Error occre
+	{		
+		if((Mode & FOpenModeWrite)==FOpenModeWrite ){ 
+			if(CreatFile(Path,false,false,false,AuthenticationNone)==-1)
+			{
+				kprintf("fopen: File Can Not Be Creat...");
+				goto ExceptionCanNotCreat;
+			}
+			goto Fopen_Find;
+		}
+		else{
+			kprintf("fopen: Read Only File Not Found...");
+			goto ExceptionNotFind;
+		}
+	}
+	HDD_RW(fp->FirstLBA ,HD_READ ,1 ,(void *)fp->FirstPaketFile);	
+	if((Mode & FOpenModeAppend)==FOpenModeAppend /*|| (Mode & FOpenModeRead)!=FOpenModeRead*/)
+	{//Get Last Seek	To Append File
+		unsigned int ContentLBA;
+		if(fp->FirstPaketFile->Size.TotalSector!=0)	
+		{
+			if(fp->FirstPaketFile->Size.TotalSector >= TOTAL_SECTOR_ADDRESS)			
+				{
+					fp->LBA=GetLastAddressPaketFile(fp->FirstPaketFile->Header ,fp->BufferAddress);		
+					ContentLBA=fp->BufferAddress->Address.SectorAddress[fp->BufferAddress->AddressOffset];  
+				}
+			else
+			{
+				ContentLBA=fp->FirstPaketFile->Size.SectorAddress[fp->FirstPaketFile->AddressOffset];			
+			}
+			HDD_RW(ContentLBA ,HD_READ ,1 ,fp->BufferRW );
+			fp->Seek.Sector=fp->FirstPaketFile->Size.TotalSector-1;
+			fp->Seek.OffsetByte=fp->BufferRW->Offset;
+		}
+		else{
+			fp->Seek.Sector=0;
+			fp->Seek.OffsetByte=0;
+		}
+	}
+	else
+	{ //For [Text Or Binary]  [Read Or Write]
+		if((Mode & FOpenModeRead)!=FOpenModeRead)
+		{
+			printf("Delete Content");getch();
+			DeleteContent(fp->DriveNumber ,fp->LBA );			
+		}
+		fp->Seek.Sector=0; 	fp->Seek.OffsetByte=0;
+	}	
+	if(fp->Seek.OffsetByte ==CONTENT_TOTAL_BYTE)
+	{
+		fp->Seek.Sector++;
+		fp->Seek .OffsetByte =0;
+	}
+	free((unsigned int *)PathOnly);	
+	return fp;
+
+ExceptionMemory:
+ExceptionNotFind:
+ExceptionCanNotCreat:
+	free((unsigned int *)Path);
+	free((unsigned int *)PathOnly);
+	free((unsigned int *)fp->FirstPaketFile);
+	free((unsigned int *)fp->BufferAddress);
+	free((unsigned int *)fp->BufferRW);
+	return NULL;
+}
+
+/// <summary>		
+	///This Function Is Read To Buffer From File Pointer.		
+	///char *Buffer: 
+	///short Size:
+	///int Count:
+	///FILE* Stream:
+/// </summary>
+unsigned int fread(char* Buffer ,short Size ,int Count ,FILE* Stream)
+{
+	unsigned int TotalByte=Count *Size,RByte=0,rest;
+	//Then Write Buffer To Sector
+	while(RByte < TotalByte)
+	{	
+		if((Stream->Seek.Sector+1) >= TOTAL_SECTOR_ADDRESS)//Not First
+		{
+			puts("Not first\n");
+			HDD_RW(Stream->BufferAddress->Address.SectorAddress[(Stream->Seek.Sector+1)%TOTAL_SECTOR_ADDRESS] ,HD_READ ,1 ,Stream->BufferRW );
+		}
+		else//first	
+		{			
+			HDD_RW(Stream->FirstPaketFile->Size.SectorAddress[Stream->Seek.Sector] ,HD_READ ,1 ,Stream->BufferRW );			
+		}		
+		rest=((TotalByte-RByte)%CONTENT_TOTAL_BYTE)+1;
+		if(rest > (unsigned int)Stream->BufferRW->Offset)
+			rest=Stream->BufferRW->Offset;		
+		Bytencpy(&(Buffer[RByte]) ,&(Stream->BufferRW->Content[Stream->Seek.OffsetByte]),rest);
+		Stream->Seek.OffsetByte+=rest;
+		RByte+=rest;
+		if(Stream->Seek.OffsetByte==CONTENT_TOTAL_BYTE)
+		{
+			Stream->Seek.Sector++;
+			Stream->Seek.OffsetByte=0;
+		}		
+	}
+	return RByte;
+}
+/// <summary>		
+	///This Function Is Write Buffer To File Pointer.		
+	///char *Buffer: 
+	///short Size:
+	///int Count:
+	///FILE* Stream:
+/// </summary>
+unsigned int fwrite(char* Buffer ,short Size ,int Count ,FILE* Stream)
+{	
+	unsigned int TotalByte=Count *Size,WRByte=0,rest;
+	unsigned int LBAContent;
+	//Then Write Buffer To Sector
+	while(WRByte < TotalByte)
+	{		
+		if((TotalByte-WRByte)>=CONTENT_TOTAL_BYTE && Stream->Seek.OffsetByte ==0)//Check Equal Is Correct[May Be Bug]
+		{
+			Bytencpy(Stream->BufferRW->Content ,&(Buffer[WRByte]) ,CONTENT_TOTAL_BYTE);				
+			Stream->BufferRW->Offset=CONTENT_TOTAL_BYTE;
+			if(Stream->FirstPaketFile->Size.TotalSector <= Stream->Seek.Sector) 
+			{				
+				LBAContent=AllocateContentSector(Stream);
+				if(LBAContent==0){
+						kprintf("Drive %c Is Full!",DriveListName[Stream->DriveNumber]);
+						return 0;
+					}
+			}
+			else{
+				if((Stream->Seek.Sector+1) >= TOTAL_SECTOR_ADDRESS)//Not First
+					LBAContent=Stream->BufferAddress->Address.SectorAddress[(Stream->Seek.Sector+1)%TOTAL_SECTOR_ADDRESS];
+				else//Is First
+					LBAContent=Stream->FirstPaketFile->Size.SectorAddress[Stream->Seek.Sector];
+				}
+			HDD_RW(LBAContent ,HD_WRITE ,1 ,Stream->BufferRW );
+			Stream->Seek.Sector++;
+			WRByte+=CONTENT_TOTAL_BYTE;
+			Stream->BufferRW->Offset=0;
+		}
+		else
+		{
+
+			//Copy To Buffer(Make Buffer)
+			rest=CONTENT_TOTAL_BYTE - Stream->Seek.OffsetByte;			
+			if(rest>(TotalByte-WRByte))	rest=TotalByte-WRByte;			
+			Bytencpy(&(Stream->BufferRW->Content[Stream->BufferRW->Offset]) ,&(Buffer[WRByte]) ,rest );			
+			Stream->BufferRW->Offset =(((short)(Stream->Seek.OffsetByte+rest))>Stream->BufferRW->Offset ? (short)(Stream->Seek.OffsetByte+rest) : Stream->BufferRW->Offset);
+					
+			if(Stream->BufferRW->Offset==CONTENT_TOTAL_BYTE)
+			{//Write To Complate Sector				
+				if(Stream->FirstPaketFile->Size.TotalSector <= Stream->Seek.Sector) 
+				{
+					LBAContent=AllocateContentSector(Stream);
+					if(LBAContent==0){
+						kprintf("Drive %c Is Full!",DriveListName[Stream->DriveNumber]);
+						return 0;
+					}				
+				}
+				else{
+					if((Stream->Seek.Sector+1) >= TOTAL_SECTOR_ADDRESS)//Not First
+						LBAContent=Stream->BufferAddress->Address.SectorAddress[(Stream->Seek.Sector+1)%TOTAL_SECTOR_ADDRESS];
+					else//first
+						LBAContent=Stream->FirstPaketFile->Size.SectorAddress[Stream->Seek.Sector];
+				}				
+				HDD_RW(LBAContent ,HD_WRITE ,1 ,Stream->BufferRW );				
+				Stream->Seek.Sector++;
+				Stream->Seek.OffsetByte=0;
+				Stream->BufferRW->Offset=0;
+			}
+			else //Not Write And Wait Until Be Complate To Be High Performance
+				Stream->Seek.OffsetByte+=rest;
+
+			WRByte+=rest;			
+		}
+	}	
+
+	return WRByte;
+}
+
+/// <summary>		
+	///This Function Is Allocate Content Sector.
+	///struct PaketFile *PF: Allocate Content Sector In PF->adress.sectoradress[]
+	///int *TotalSector:Size Of File 
+	///unsigned int Address:Address Of Current PacketFile(*PF) In HDD.
+	///Return LBA Of Content Alocated Sector.
+/// </summary>
+unsigned int AllocateContentSector(FILE *Stream)
+{//Not Test
+	unsigned int LBA=Stream->LBA;
+	//printf("Not Test Here!Come Now");getch();getch();getch();getch();getch();getch();getch();
+	if((ceill((Stream->FirstPaketFile->Size.TotalSector+1)/TOTAL_SECTOR_ADDRESS)-ceill((Stream->FirstPaketFile->Size .TotalSector)/TOTAL_SECTOR_ADDRESS))==1)//Is Increase AddressSector?
+	{//Link To New Address PaketFile		
+		if(Stream->FirstPaketFile->Size.TotalSector>=TOTAL_SECTOR_ADDRESS)
+		{
+			Stream->BufferAddress->Header.FileHeader &=(unsigned short)~EOFP; 					
+			Stream->BufferAddress->Header.Next = AllocateSBitmapAtDrive(Stream->DriveNumber);//Paket Address Tamam Shode Bayad Ye Paket Address Dege Ejad Konad			
+			HDD_RW(LBA,HD_WRITE,1,Stream->BufferAddress);
+			Stream->LBA=Stream->BufferAddress->Header.Next;
+		}
+		else
+		{
+			Stream->FirstPaketFile->Header.FileHeader &=(unsigned short)~EOFP; 				
+			Stream->FirstPaketFile->Header.Next = AllocateSBitmapAtDrive(Stream->DriveNumber);//Paket Address Tamam Shode Bayad Ye Paket Address Dege Ejad Konad			
+			HDD_RW(LBA,HD_WRITE,1,Stream->FirstPaketFile);//can delete!
+			Stream->LBA =Stream->FirstPaketFile->Header.Next;
+		}		
+		//Initilize New PacketFile
+		Stream->BufferAddress->Header.FileHeader=EOFP;
+		Stream->BufferAddress->Header.Next =0;
+		Stream->BufferAddress->AddressOffset=0;		
+		/*Stream->PacketFileBuffer=PFAddress;*/
+	}		
+	unsigned int ContentLBA=AllocateSBitmapAtDrive(Stream->DriveNumber);	
+	if(ContentLBA==0){
+		kprintf("Dive %c Is Full ,Can Not Do Operation On This Drive!",DriveListName[Stream->DriveNumber]);
+		return 0;
+	}	
+	if((Stream->FirstPaketFile->Size.TotalSector+1)>=TOTAL_SECTOR_ADDRESS)
+	{//Not First Paket		
+		Stream->BufferAddress->Address.SectorAddress[(Stream->FirstPaketFile->Size.TotalSector+1)%TOTAL_SECTOR_ADDRESS]=ContentLBA;		
+		Stream->BufferAddress->AddressOffset= (Stream->FirstPaketFile->Size.TotalSector+1)%TOTAL_SECTOR_ADDRESS;	
+	}	
+	else
+	{//First Paket
+		Stream->FirstPaketFile->Size.SectorAddress[(Stream->FirstPaketFile->Size.TotalSector)%TOTAL_SECTOR_ADDRESS]=ContentLBA;		
+		Stream->FirstPaketFile->AddressOffset= (Stream->FirstPaketFile->Size.TotalSector)%TOTAL_SECTOR_ADDRESS;		
+		/*Stream->FirstPaketFile->Size.SectorAddress[0]=1234;		
+		Stream->BufferAddress->Address.SectorAddress[0]=12;*/
+	}	
+	Stream->FirstPaketFile->Size.TotalSector++;	
+	return ContentLBA;
+}
+
+short fclose(FILE *Stream)
+{	
+	fflush(Stream);
+	free((unsigned int *)Stream->BufferAddress);
+	free((unsigned int *)Stream->FirstPaketFile);
+	free((unsigned int *)Stream->BufferRW);
+	return 1;
+}
+
+short fflush(FILE *Stream)
+{
+	unsigned int LBAContent;	
+	if(Stream->Seek.OffsetByte!=0)//If Offset is zero is not needed To write Empty Byte
+	{
+		if(((Stream->Seek.Sector+(Stream->Seek.OffsetByte>0? 1:0))- Stream->FirstPaketFile->Size.TotalSector) ==1 ) //is it need to allocate?
+		{			
+			LBAContent=AllocateContentSector(Stream);
+			if(LBAContent==0){
+				kprintf("Drive %c Is Full!",DriveListName[Stream->DriveNumber]);
+				return 0;
+			}
+		}
+		else
+		{			
+			if((Stream->Seek.Sector+1) >= TOTAL_SECTOR_ADDRESS)//Not First			
+				LBAContent=Stream->BufferAddress->Address.SectorAddress[(Stream->Seek.Sector+1)%TOTAL_SECTOR_ADDRESS];				
+			else//first			
+				LBAContent=Stream->FirstPaketFile->Size.SectorAddress[Stream->Seek.Sector];				
+		}		
+		HDD_RW(LBAContent ,HD_WRITE ,1 ,Stream->BufferRW );		
+	}
+	//write FirstPaketFile
+	HDD_RW(Stream->FirstLBA,HD_WRITE ,1 ,Stream->FirstPaketFile );
+	//write BufferAddress
+	if(Stream->FirstLBA!=Stream->LBA)	
+		HDD_RW(Stream->LBA,HD_WRITE,1,Stream->BufferAddress);
+	return 1;
+}
+
+short fseek(FILE* Stream,unsigned int offset ,enum WhenceEnum whence)
+{
+	////First Allocat All Sector Note: Dara Fseek Bayad Tamame Sector Haey Ke Hanoz Allocate Nashode Ra Allocate Kone
+	//while(Stream->FirstPaketFile->Size.TotalSector < Stream->Seek.Sector)
+	//{
+	//	printf("TotalSector=%d Seek.Sector=%d",Stream->FirstPaketFile->Size.TotalSector,Stream->Seek.Sector);getch();
+	//	if(AllocateContentSector(Stream)==0){
+	//		kprintf("Drive %c Is Full!",DriveListName[Stream->DriveNumber]);
+	//		return 0;
+	//	}
+	//}
+
+				////First Read InComplete Sector Note: Dar Fseek Kardan Bayad Sector InComplete Bekhone
+			//	if(Stream->Seek.Sector >= TOTAL_SECTOR_ADDRESS)//Not First
+			//	{
+			//		HDD_RW(Stream->BufferAddress->Address.SectorAddress[Stream->Seek.Sector] ,HD_READ ,1 ,Stream->BufferRW );
+			//		printf("Print Content");
+			//		PrintPaketContent(Stream->DriveNumber,Stream->BufferAddress->Address.SectorAddress[Stream->Seek.Sector]); 
+			//	}
+			//	else
+			//	{
+			//		HDD_RW(Stream->FirstPaketFile->Address.SectorAddress[Stream->Seek.Sector] ,HD_READ ,1 ,Stream->BufferRW );
+			//		printf("Print Content");
+			//		PrintPaketContent(Stream->DriveNumber,Stream->BufferAddress->Address.SectorAddress[Stream->Seek.Sector]); 
+			//	}
+	return 0;
+}
+/// <summary>		
+	///This Function Is Get Last Address That Allocated For PaketFile.
+	///struct HeaderFile FileHeader: Is Used In PaketFile Struct And Contain {unsigned short FileHeader; unsigned int Next;}
+	///struct PaketFile *Buf:Save Last PaketFile In This Buf. 
+	///Return One Paket Previous Address Or Address LBA Of Buf In HDD And Next Adddress Is Null(EOPF Is True).
+	///Note:If Return 0 that is For FirstPacket And Can Not Return Previous Address.
+/// </summary>
+unsigned int GetLastAddressPaketFile(struct HeaderFile FileHeader ,struct PaketFile *Buf)
+{
+	unsigned int Address=0;
+	do{
+		if(IsEOFP(FileHeader.FileHeader))
+			return Address;		
+		Address=FileHeader.Next;//Save Old Address(One Paket Previous)
+		HDD_RW(FileHeader.Next ,HD_READ ,1,Buf);			
+		FileHeader.FileHeader =Buf->Header.FileHeader ;
+		FileHeader.Next =Buf->Header.Next;
+	}while(true);
+}
+/// <summary>		
+	///This Function Is Get Last Address That Allocated For PaketFile.
+	///struct HeaderFile FileHeader: Is Used In PaketFile Struct And Contain {unsigned short FileHeader; unsigned int Next;}
+	///struct PaketFile *Buf:Save Last PaketFile In This Buf. 
+	///Return If Reach To EOFP Return 0 And Reach To N PaketFile Return 1.
+/// </summary>
+unsigned int GetNAddressPaketFile(struct HeaderFile FileHeader ,unsigned int n,struct PaketFile *Buf)
+{
+	unsigned int Address=0;
+	do{
+		if(IsEOFP(FileHeader.FileHeader))
+			return 0;		
+		Address=FileHeader.Next;//Save Old Address(One Paket Previous)
+		HDD_RW(FileHeader.Next ,HD_READ ,1,Buf);			
+		n--;
+		if(n==0)return Address;
+		FileHeader.FileHeader=Buf->Header.FileHeader ;
+		FileHeader.Next=Buf->Header.Next;
+	}while(true);
+}
+/// <summary>		
+	///This Function Is Delete File Content(Not File Just Content).		
+	///DriveNumber Is 0=C or 1=D or 2=E or 3=F
+	///unsigned int ContentAddress: This Is Address To Delete Content,And Usualy This Init with First PaketFile Address.
+/// </summary>
+void DeleteContent(short DriveNumber ,unsigned int ContentAddress)
+{//Not Tested
+	//Read First Packet	
+	struct PaketFile *PF=(struct PaketFile *)malloc(sizeof(struct PaketFile));
+	HDD_RW(ContentAddress ,HD_READ ,1,PF);	
+	unsigned int size=PF->Size.TotalSector;
+	unsigned int i;
+	printf("DriveNumber=%d ContentAddress=%d size=%d",DriveNumber,ContentAddress,size);getch();
+	//First Delete FirstPacket(125=TOTAL_SECTOR_ADDRESS-1)
+	if(size>0)
+	{
+		for(i=0;i<((TOTAL_SECTOR_ADDRESS-1)>size ? size:(TOTAL_SECTOR_ADDRESS-1));i++)	
+		{
+			//printf("%d)DriveNumber=%d ContentAddress=%d size=%d",i,DriveNumber,ContentAddress,size);getch();
+			UnAllocateSector(DriveNumber,PF->Size.SectorAddress[i]);
+		}
+	
+		size-=((TOTAL_SECTOR_ADDRESS-1)>size ? size:(TOTAL_SECTOR_ADDRESS-1));
+		PF->Size.TotalSector=0;
+		PF->Header.FileHeader&=EOFP;
+		HDD_RW(ContentAddress ,HD_WRITE ,1,PF);
+		//Note:Not Change Variable (PF->Header.Next) Since Here!
+		//Secont Delete Other AddressPacket	
+		while(size>0)//!IsEOFP(PF->Header.FileHeader)
+		{
+			ContentAddress=PF->Header.Next;
+			HDD_RW(ContentAddress ,HD_READ ,1,PF);
+			for(i=0;i<( TOTAL_SECTOR_ADDRESS>size ? size : TOTAL_SECTOR_ADDRESS );i++)	
+				UnAllocateSector(DriveNumber,PF->Size.SectorAddress[i]);	
+			size-=TOTAL_SECTOR_ADDRESS;
+		}
+	}
+	free((unsigned int *)PF);
+}
+/// <summary>		
+	///This Function Is Creat Root On Drive.		
+	///DriveName Is C or D or E or F
+	///If Return -1 then Not Creat Successful and Return 0 then Creat Successful
+/// </summary>
+int CreatRootDirectoryAtDrive(char DriveName ,unsigned int Root ,unsigned int BeginLBA )
+{
+	//char Sector[SECTOR_SIZE];
+	struct PaketEntry DirPaket={{0}};
+	short DriveNumber=GetDriveNumber(DriveName);
+	if(DriveNumber==-1) 
+	{
+		kprintf("GetStartOfFrame:This Drive Is Not Exist.[%c:\\]",DriveName);
+		return -1;
+	}
+	/*BUG FIX :We Must Set CashDrive.Becuse When call AllocateSector This Function Call GetRootLBA And This Function Must Read BootSector Of This Drive And This Drive still Not Write To HDD*/
+	CashDrive[0]=DriveNumber;	//Set Drive Number That Read In	IsAllocateSBitmapAtDrive  And   AllocateSector
+	CashDrive[1]=BeginLBA+Root; //Set RootLBA	
+	
+	DirPaket.Header.ParentAddress=0;  
+	DirPaket.Header.ChildsAddress=0;	
+	DirPaket.Header.FrameBitmap =0; 	
+	DirPaket.Header.PacketHeader =SOP | EOP;	
+
+	AllocateSector(DriveNumber ,BeginLBA+Root);
+	HDD_RW(BeginLBA+Root, HD_WRITE, 1,(void *)&DirPaket);
+	cprintf(LIGHTBLUE,"\nRoot Is Create Successful.\n");
+	return 0;
+}
+
+
+/// <summary>		
+	///This Function Is Print Header And Reserve And Content Of Frame.		
+	///PaketContentLBA: Is Location[Paket] To Be Print
+	///IsReserve:If Set True Print Reserv Byte
+/// </summary>
+void PrintPaketEntry(short DriveNumber ,unsigned int PaketEntryLBA,bool IsReserve)
+{
+	if(IsAllocateSBitmapAtDrive(DriveNumber ,PaketEntryLBA)==false )
+	{
+		kprintf("This LBA Is Not Allocated[%d].",PaketEntryLBA );
+		return;
+	}
+	word i;
+	char CreatDateBuf[17],ModifiedDateBuf[17];
+	cprintf(YELLOW,"\nPaket Entry At %d(%2X HEX).\n",PaketEntryLBA ,PaketEntryLBA );
+	//char Sector[SECTOR_SIZE];
+	struct PaketEntry DirPaket={{0}};	
+	HDD_RW(PaketEntryLBA, HD_READ, 1,(void *)&DirPaket);
+
+	cprintf(CYAN,"Header Content(Size=11Byte):");
+	printf("\n  | FrameBitmap | Header | ParentAddress | ChildsAddress | ParentOffSetFrame");
+	printf("\n--|-------------|--------|---------------|---------------|------------------");
+	printf("\n  |    %04X     |  %02X    |    %-8X   |    %-8X   | %2X\n",DirPaket.Header.FrameBitmap ,DirPaket.Header.PacketHeader ,DirPaket.Header.ParentAddress ,DirPaket.Header.ChildsAddress ,DirPaket.Header.ParentOffSetFrame );
+	
+	if(IsReserve==true){
+		cprintf(CYAN,"Reserve Content(Size=3Byte):");
+		printf("\n  | Word[0] | Word[1] ");
+		printf("\n--|---------|---------");
+		printf("\n  |   %-4X    |   %-4X    \n",DirPaket.Reserve[0],DirPaket.Reserve[1]);
+	}
+
+	cprintf(CYAN,"Frame Content(Size=496Byte):");
+	printf("\n  | Frame Name  | EXT | Creat Date     | Modified Date  | Flag | PaketAddress");
+	printf("\n--|-------------|-----|----------------|----------------|------|-------------");
+	for(i=0;i<16;i++){
+		CFileDateToString(CreatDateBuf ,DirPaket.Frame[i].CreatFile ,false ,true ,false );
+		CFileDateToString(ModifiedDateBuf ,DirPaket.Frame[i].ModifiedFile ,false ,true ,false ); 
+		printf("\n%2u| %-11.11s | %-3.3s | %-14.14s | %-14.14s | %-2X   | %-%u ",(i+1),DirPaket.Frame[i].FileName ,DirPaket.Frame[i].FileExtention ,CreatDateBuf ,ModifiedDateBuf ,DirPaket.Frame[i].Flags ,DirPaket.Frame[i].PaketAddress);
+	}	
+	if(IsEOP(DirPaket.Header.PacketHeader)==false){
+		cprintf(LIGHTMAGENTA,"\nNext paket Is There,To View Next Packet Press C?"); 
+		if(CharToUpper( getch())== 'C')
+			PrintPaketEntry(DriveNumber ,DirPaket.Header.ChildsAddress ,IsReserve );		
+	}
+	else
+		putch('\n');	
+
+	printf("\nDo You Want View Address Of Paket File Press A?");
+	if(CharToUpper( getch())== 'A'){
+		unsigned int LBA;char op;
+		printf("\nPlease Enter LBA That Print Packet Entery[%d...%d]?",mbr.DiskPartition[DriveNumber].BeginLBA+1 ,mbr.DiskPartition[DriveNumber].SizeLBA+mbr.DiskPartition[DriveNumber].BeginLBA+1);				 
+		LBA=GetIntegerNumber(0,false);
+		printf("Is First Address Of File Paket?(y/n)");
+		op=CharToUpper(getch());
+		PrintAddressOfContentPaket(DriveNumber ,LBA,(op=='Y'? true:false));
+	}
+}
+
+/// <summary>		
+	///This Function Is Print Offset And Content Of File[One Sector].		
+	///PaketContentLBA: Is Location[Paket] To Be Print
+/// </summary>
+void PrintPaketContent(short DriveNumber ,unsigned int PaketContentLBA)
+{
+	if(IsAllocateSBitmapAtDrive(DriveNumber ,PaketContentLBA )==false )
+	{
+		kprintf("This LBA Is Not Allocated[%d].",PaketContentLBA );
+		return;
+	}
+	cprintf(YELLOW,"\nPaket Content At %d(%2X HEX).\n",PaketContentLBA,PaketContentLBA);	
+	struct SectorContent FilePaket={0};	
+	HDD_RW(PaketContentLBA, HD_READ, 1,(void *)&FilePaket);
+
+	cprintf(CYAN,"Header Content(Size=2Byte):");
+	printf("\nOffSet=%-4d  \n",FilePaket.Offset);
+
+	cprintf(CYAN,"Header Content(Size=510Byte):\n");
+	dump((unsigned char *)FilePaket.Content, CONTENT_TOTAL_BYTE,true);
+}
+/// <summary>		
+	///This Function Is Print Header And Content Of File[One Sector].		
+	///PaketContentLBA: Is Location[Paket] To Be Print
+/// </summary>
+void PrintAddressOfContentPaket(short DriveNumber ,unsigned int PaketContentAddressLBA,bool IsFirstPaketFile)
+{
+	int i,Address;
+	
+	if(IsAllocateSBitmapAtDrive(DriveNumber ,PaketContentAddressLBA )==false )
+	{
+		kprintf("This LBA Is Not Allocated[%d].",PaketContentAddressLBA );
+		return;
+	}
+	cprintf(YELLOW,"\nPaket Addresses At %d(%2X HEX).\n",PaketContentAddressLBA,PaketContentAddressLBA);	
+	struct PaketFile FilePaket={{0}};	
+	HDD_RW(PaketContentAddressLBA, HD_READ, 1,(void *)&FilePaket);
+	
+	printf("\n  | FileHeader | EOFP |    Next  | TotalSector  | AddressOffset");
+	printf("\n--|------------|------|----------|--------------|----------------");
+	printf("\n  |    %-4X    |  %c   | %-8d | %-8d     | %-2d\n",FilePaket.Header.FileHeader ,(IsEOFP(FilePaket.Header.FileHeader)==true ? 'Y' : 'N') ,FilePaket.Header.Next ,(IsFirstPaketFile==true ? FilePaket.Size.TotalSector :0),FilePaket.AddressOffset);
+
+	cprintf(CYAN,"Address Of Content Sector:(Size=502Byte):");
+	if(IsFirstPaketFile ==true)
+	{
+		for(i=0;i<TOTAL_SECTOR_ADDRESS-1;i++)
+		{
+			if((i%7)==0) putch('\n');
+			printf("%-11d",FilePaket.Size.SectorAddress[i]);
+		}
+		putch ('\n');
+	}
+	else
+	{
+		for(i=0;i<TOTAL_SECTOR_ADDRESS;i++)
+		{
+			if((i%7)==0) putch('\n');
+			printf("%-11d",FilePaket.Address.SectorAddress[i]);
+		}
+		putch ('\n');
+	}
+	//getch();
+	cprintf(CYAN,"Enter S To Select Address And N To Next List Address Or Other Key Exit:");
+	char op=CharToUpper(getch());
+	if(op=='N')
+	{
+		//printf("Is First Paket File [Defult No]?(y/n)");
+		//op=CharToUpper(getch());
+		//IsFirstPaketFile=(op=='Y' ? true : false);
+		PrintAddressOfContentPaket(DriveNumber ,FilePaket.Header.Next,IsFirstPaketFile );
+	}	
+	if(op=='S')
+	{
+		printf("\nPlease Enter Content Address?");
+		Address=GetIntegerNumber(0,false);
+		PrintPaketContent(DriveNumber ,Address);
+	}	
+}
+
+/// <summary>
+	///This Function Is Print MBR(Master Boot Recort).
+	///MBR Is First Boot Sector.
+/// </summary>
+void PrintBootSector(struct BootSector *bs)
+{
+	int i=0;
+	printf("\nBoot Jump =\t\t%2X%2X%2X",bs->jumpBoot[0],bs->jumpBoot[1],bs->jumpBoot[2]);
+	printf("\nSystem Name =\t\t%s",bs->SysName);
+	printf("\nBitmap Sector Start =\t%d",bs->StartSectorBitmap);	
+	printf("\nBitmap Sector Size =\t%d",bs->SizeSectorBitmap);	
+	printf("\nRoot Sector Start =\t%d",bs->StartRoot);	
+	printf("\nDrive Name =\t\t%c",bs->DriveName);	
+	printf("\nSignacuer =\t\t%X%X",bs->Signacuer[0],bs->Signacuer[1]);	
+
+	printf("\n   | Bootable | Type           | Start Sector | Capacity ");
+	printf("\n---|----------|----------------|--------------|----------");
+	for(i=0;i<=3;i++){
+		printf("\n%d  | %s|",(i+1),(bs->DiskPartition[i].bootable==BOOTABLE ? "Yes      " : "No       "));	
+		printf(" %-15.15s|",FileSystemType(bs->DiskPartition[i].PartitionType));			
+		printf(" %-13u|",abs(bs->DiskPartition[i].BeginLBA));	
+		printf(" %-8u MB",CSectroToMega(abs(bs->DiskPartition[i].SizeLBA)));			
+	}
+}
+
+/// <summary>		
+	///This Function Is Print Some Of File System Method For Debuging.			
+/// </summary>
+void ViewFSMethod()
+{
+	unsigned int LBA;
+	short DriveNumber;
+	unsigned short Part;
+	struct BootSector bs;
+	cprintf(LIGHTBLUE,"Please Enter "); cprintf(YELLOW,"E"); cprintf(LIGHTBLUE,"[Entry Packet]"); cprintf(YELLOW," F"); cprintf(LIGHTBLUE,"[FilePacket]"); cprintf(YELLOW," S"); cprintf(LIGHTBLUE,"[Sector Bitmap] "); cprintf(YELLOW,"B"); cprintf(LIGHTBLUE,"[BootSector]\n"); 
+	cprintf(YELLOW,"D"); cprintf(LIGHTBLUE,"[Directory Creat] "); cprintf(YELLOW,"C"); cprintf(LIGHTBLUE,"[File Creat] "); cprintf(YELLOW,"A"); cprintf(LIGHTBLUE,"[Address Of File Paket] "); cprintf(YELLOW,"Q"); cprintf(LIGHTBLUE,"[Quit]:");
+	char op=CharToUpper(getch());
+	//unsigned short DriveNumber;
+	 char Path[100];
+	 bool IsSystem ,IsHiden ,IsReadOnly ;
+	 int Authentication;
+
+	switch(op)
+	{
+		case 'D':			
+			IsSystem=false ;IsHiden=false ;IsReadOnly=false ;
+			Authentication=AuthenticationNone; 
+			cprintf(BROWN,"\nDIRECTORY CREAT PARAMETERS:");			
+			printf("\nPlease Enter Path?");GetString((char *)Path ,0 ,false ); 
+			printf("\nIs System Directory Y/N[By Defult Is No]?");op=CharToUpper(getch());	IsSystem =(op=='Y' ? true : (op=='N' ? false : IsSystem ));
+			printf("\nIs Hiden Directory Y/N[By Defult Is No]?");op=CharToUpper(getch());	IsHiden =(op=='Y' ? true : (op=='N' ? false : IsHiden ));
+			printf("\nIs Read Only Directory Y/N[By Defult Is No]?");op=CharToUpper(getch());	IsReadOnly =(op=='Y' ? true : (op=='N' ? false : IsReadOnly ));
+			
+			printf("\nIs View Authentication  Y/N[By Defult Is Yes]?");op=CharToUpper(getch());	Authentication |=(op=='Y' ? AuthenticationFolderDir : (op=='N' ? 0 : AuthenticationFolderDir ));
+			printf("\nIs Read Authentication  Y/N[By Defult Is Yes]?");op=CharToUpper(getch());	Authentication |=(op=='Y' ? AuthenticationRead : (op=='N' ? 0 : AuthenticationRead ));
+			printf("\nIs Write Authentication Y/N[By Defult Is Yes]?");op=CharToUpper(getch());	Authentication |=(op=='Y' ? AuthenticationWrite : (op=='N' ? 0 : AuthenticationWrite ));
+
+			CreatDir((const char *)Path ,IsSystem ,IsHiden ,IsReadOnly ,(enum FrameFlagsAuthenticationEnum)Authentication ); 
+			getch();
+			ViewFSMethod();
+			break;
+		case 'C':
+			IsSystem=false ;IsHiden=false ;IsReadOnly=false ;
+			Authentication=AuthenticationNone; 
+			cprintf(BROWN,"\nFILE CREAT PARAMETERS:");			
+			printf("\nPlease Enter Path?");GetString((char *)Path ,0 ,false ); 
+			printf("\nIs System File Y/N[By Defult Is No]?");op=CharToUpper(getch());	IsSystem =(op=='Y' ? true : (op=='N' ? false : IsSystem ));
+			printf("\nIs Hiden File Y/N[By Defult Is No]?");op=CharToUpper(getch());	IsHiden =(op=='Y' ? true : (op=='N' ? false : IsHiden ));
+			printf("\nIs Read Only File Y/N[By Defult Is No]?");op=CharToUpper(getch());	IsReadOnly =(op=='Y' ? true : (op=='N' ? false : IsReadOnly ));
+			
+			printf("\nIs View Authentication  Y/N[By Defult Is Yes]?");op=CharToUpper(getch());	Authentication |=(op=='Y' ? AuthenticationFolderDir : (op=='N' ? 0 : AuthenticationFolderDir ));
+			printf("\nIs Read Authentication  Y/N[By Defult Is Yes]?");op=CharToUpper(getch());	Authentication |=(op=='Y' ? AuthenticationRead : (op=='N' ? 0 : AuthenticationRead ));
+			printf("\nIs Write Authentication Y/N[By Defult Is Yes]?");op=CharToUpper(getch());	Authentication |=(op=='Y' ? AuthenticationWrite : (op=='N' ? 0 : AuthenticationWrite ));
+
+			CreatFile((char *)Path ,IsSystem ,IsHiden ,IsReadOnly ,(enum FrameFlagsAuthenticationEnum)Authentication ); 
+			getch();
+			ViewFSMethod();
+			break;
+		case 'E':
+			cprintf(BROWN,"\nPAKET ENTERY PARAMETERS:");
+			printf("\nPlease Enter Drive Name[C,D,E,F]?");			
+			DriveNumber=GetDriveNumber(getch()); 
+			if(DriveNumber==-1)
+			{
+				cprintf(RED,"\nGiven Drive Is Not Exist");
+				break;
+			}
+			do{
+				printf("\nPlease Enter LBA That Print Packet Entery[%d...%d]?",GetRootLBA(DriveNumber) ,GetRootLBA(DriveNumber)+mbr.DiskPartition[DriveNumber].SizeLBA);				 				 
+				LBA=GetIntegerNumber(0,false);
+				//LBA+=mbr.DiskPartition[DriveNumber].BeginLBA;  
+				PrintPaketEntry(DriveNumber ,LBA,false);
+				printf("To Print Other LBA Enter C?");
+			}while(CharToUpper( getch())=='C');
+			ViewFSMethod();
+			break;
+		case 'F':
+			cprintf(BROWN,"\nFILE ENTERY PARAMETERS:");
+			printf("\nPlease Enter Drive Name[C,D,E,F]?");			
+			DriveNumber=GetDriveNumber(getch()); 
+			if(DriveNumber==-1)
+			{
+				cprintf(RED,"\nGiven Drive Is Not Exist");
+				break;
+			}
+			do{
+				printf("\nPlease Enter LBA That Print Packet File[%d...%d]?",mbr.DiskPartition[DriveNumber].BeginLBA+1 ,mbr.DiskPartition[DriveNumber].SizeLBA+mbr.DiskPartition[DriveNumber].BeginLBA+1);
+				LBA=GetIntegerNumber(0,false); 
+				//LBA+=mbr.DiskPartition[DriveNumber].BeginLBA;  
+				PrintPaketContent(DriveNumber ,LBA);
+			}while(CharToUpper( getch())=='C');
+			ViewFSMethod();
+			break;
+		case 'S':
+			cprintf(BROWN,"\nSECTOR BITMAP PARAMETERS:");
+			printf("\nPlease Enter Drive Name[C,D,E,F]?");			
+			DriveNumber=GetDriveNumber(getch()); 
+			if(DriveNumber==-1)
+			{
+				cprintf(RED,"\nGiven Drive Is Not Exist");
+				break;
+			}
+			do{
+				printf("\nPlease Enter Part ?[0...%d]?",GetSectorBitmapSize(DriveNumber));
+				Part=GetIntegerNumber(0,false); 
+				DumpSBitmap(DriveNumber ,Part);
+			}while(CharToUpper( getch())=='C');
+			ViewFSMethod();
+			break;
+		case 'B':
+			cprintf(BROWN,"\nBOOT SECTOR PARAMETERS:");
+			printf("\nPlease Enter Drive Name[C,D,E,F]?");			
+			DriveNumber=GetDriveNumber(getch()); 
+			if(DriveNumber==-1)
+			{
+				cprintf(RED,"\nGiven Drive Is Not Exist");
+				break;
+			}
+			HDD_RW(mbr.DiskPartition[DriveNumber].BeginLBA ,HD_READ ,1,&bs);
+			PrintBootSector(&bs); 
+			break;
+		case 'A':
+			cprintf(BROWN,"\nAddress Of File Paket PARAMETERS:");
+			printf("\nPlease Enter Drive Name[C,D,E,F]?");			
+			DriveNumber=GetDriveNumber(getch()); 
+			if(DriveNumber==-1)
+			{
+				cprintf(RED,"\nGiven Drive Is Not Exist");
+				break;
+			}			
+			do{
+				printf("\nPlease Enter LBA That Print Packet Entery[%d...%d]?",mbr.DiskPartition[DriveNumber].BeginLBA+1 ,mbr.DiskPartition[DriveNumber].SizeLBA+mbr.DiskPartition[DriveNumber].BeginLBA+1);				 
+				LBA=GetIntegerNumber(0,false);
+				printf("Is First Address Of File Paket?(y/n)");
+				op=CharToUpper(getch());
+				//LBA+=mbr.DiskPartition[DriveNumber].BeginLBA;  
+				PrintAddressOfContentPaket(DriveNumber ,LBA,(op=='Y'? true:false));
+				printf("To Print Other LBA Enter C?");
+			}while(CharToUpper( getch())=='C');
+			ViewFSMethod();
+			break;		
+		case 'Q':
+			return;
+			break;
+	}
+}
+

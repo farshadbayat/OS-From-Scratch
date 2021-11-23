@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{85F4952C-6D96-48EE-ABBA-7936415982E1}</ProjectGuid>
+    <RootNamespace>ParsOS</RootNamespace>
+    <Keyword>MakeFileProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\source\include;.\source\library;.\source;..\ParsOS;$(ReferencePath)</ReferencePath>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd source
+make.exe</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd source
+make.exe all</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd source
+make.exe clean</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ParsOS.img</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)source\library;$(ProjectDir)source;$(ProjectDir)source\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)source\include;$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)source\Library\OSLibrary;$(ProjectDir)source\Library\GCCLibrary;$(ProjectDir)source\Library\DEVLibrary;$(ProjectDir)source\library;$(ProjectDir)source\include;$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\source\include;.\source\library;.\source;..\ParsOS;$(ReferencePath)</ReferencePath>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">make.exe</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">make.exe</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">make.exe clean</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ParsOS.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)source\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)source\include;$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="source\CKernel.cpp" />
+    <ClCompile Include="source\LIBC.C" />
+    <ClCompile Include="source\LIBCPP.CPP" />
+    <ClCompile Include="source\gdt.c" />
+    <ClCompile Include="source\idt.c" />
+    <ClCompile Include="source\irq.c" />
+    <ClCompile Include="source\isrs.c" />
+    <ClCompile Include="source\task.c" />
+    <ClCompile Include="source\Library\COMPONENT1.CPP" />
+    <ClCompile Include="source\Library\GraphicTheme.C" />
+    <ClCompile Include="source\library\VBE.CPP" />
+    <ClCompile Include="source\Library\GCCLibrary\CONIO.C" />
+    <ClCompile Include="source\Library\GCCLibrary\CTYPE.C" />
+    <ClCompile Include="source\Library\GCCLibrary\MATH.C" />
+    <ClCompile Include="source\Library\GCCLibrary\MEM.C" />
+    <ClCompile Include="source\Library\GCCLibrary\STDIO.C" />
+    <ClCompile Include="source\Library\GCCLibrary\STRING.C" />
+    <ClCompile Include="source\Library\GCCLibrary\TIME.C" />
+    <ClCompile Include="source\Library\OSLibrary\COLOR.C" />
+    <ClCompile Include="source\Library\OSLibrary\COMPONENT.C" />
+    <ClCompile Include="source\Library\OSLibrary\CONSOLE.C" />
+    <ClCompile Include="source\Library\OSLibrary\DRAW2D.C" />
+    <ClCompile Include="source\Library\OSLibrary\DRAW3D.C" />
+    <ClCompile Include="source\Library\OSLibrary\FAT.C" />
+    <ClCompile Include="source\Library\OSLibrary\FONT.C" />
+    <ClCompile Include="source\Library\OSLibrary\FS.C" />
+    <ClCompile Include="source\Library\OSLibrary\ImageBMP.C" />
+    <ClCompile Include="source\Library\OSLibrary\SYSTEM.C" />
+    <ClCompile Include="source\Library\OSLibrary\ZFS.C" />
+    <ClCompile Include="source\Library\DEVLibrary\CMOS.C" />
+    <ClCompile Include="source\Library\DEVLibrary\DEV.C" />
+    <ClCompile Include="source\Library\DEVLibrary\GRAPHICS.C" />
+    <ClCompile Include="source\Library\DEVLibrary\HDDIO.C" />
+    <ClCompile Include="source\Library\DEVLibrary\IDE.C" />
+    <ClCompile Include="source\Library\DEVLibrary\IO.C" />
+    <ClCompile Include="source\Library\DEVLibrary\KEYBOARD.C" />
+    <ClCompile Include="source\Library\DEVLibrary\MMU.C" />
+    <ClCompile Include="source\Library\DEVLibrary\MOUSE.C" />
+    <ClCompile Include="source\Library\DEVLibrary\PCI.C" />
+    <ClCompile Include="source\Library\DEVLibrary\PCNET32.C" />
+    <ClCompile Include="source\Library\DEVLibrary\PNP.C" />
+    <ClCompile Include="source\Library\DEVLibrary\SERIAL.C" />
+    <ClCompile Include="source\Library\DEVLibrary\SHEET.C" />
+    <ClCompile Include="source\Library\DEVLibrary\SOUND.C" />
+    <ClCompile Include="source\Library\DEVLibrary\TIMER.C" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source\bootsect.asm" />
+    <None Include="source\start.asm" />
+    <None Include="source\include\nasm.inc" />
+    <None Include="app.config" />
+    <None Include="output\EyeOS.img" />
+    <None Include="source\Resource File\File Allocation Table - Wikipedia, the free encyclopedia.mht" />
+    <None Include="source\Resource File\gdt.txt" />
+    <None Include="Help and Old Code To New version.txt" />
+    <None Include="source\link.ld" />
+    <None Include="source\Makefile" />
+    <None Include="tmp.txt" />
+    <None Include="source\PARSOS.IMG" />
+    <None Include="source\Library\DEV.C1" />
+    <None Include="source\Library\PCNET32.C1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\include\CMOS.H" />
+    <ClInclude Include="source\Include\COMPONENT.H" />
+    <ClInclude Include="source\Include\COMPONENT1.H" />
+    <ClInclude Include="source\include\CONIO.H" />
+    <ClInclude Include="source\Include\CONSOLE.H" />
+    <ClInclude Include="source\include\CTYPE.H" />
+    <ClInclude Include="source\Include\DEV.H" />
+    <ClInclude Include="source\Include\DRAW2D.H" />
+    <ClInclude Include="source\Include\DRAW3D.H" />
+    <ClInclude Include="source\Include\ETHERNET.H" />
+    <ClInclude Include="source\include\FAT.H" />
+    <ClInclude Include="source\include\FONT.H" />
+    <ClInclude Include="source\include\FS.H" />
+    <ClInclude Include="source\include\GRAPHICS.H" />
+    <ClInclude Include="source\include\HDDIO.H" />
+    <ClInclude Include="source\Include\ImageBMP.H" />
+    <ClInclude Include="source\Include\IO.H" />
+    <ClInclude Include="source\Include\KEYBOARD.H" />
+    <ClInclude Include="source\include\MATH.H" />
+    <ClInclude Include="source\include\MEM.H" />
+    <ClInclude Include="source\include\MMU.H" />
+    <ClInclude Include="source\include\MOUSE.H" />
+    <ClInclude Include="source\Include\PCI.H" />
+    <ClInclude Include="source\Include\PCNET32.H" />
+    <ClInclude Include="source\Include\PNP.H" />
+    <ClInclude Include="source\Include\SERIAL.H" />
+    <ClInclude Include="source\include\SHEET.H" />
+    <ClInclude Include="source\Include\SOUND.H" />
+    <ClInclude Include="source\include\STDARG.H" />
+    <ClInclude Include="source\include\STDIO.H" />
+    <ClInclude Include="source\include\STRING.H" />
+    <ClInclude Include="source\include\SYSTEM.H" />
+    <ClInclude Include="source\include\TIME.H" />
+    <ClInclude Include="source\include\VBE.H" />
+    <ClInclude Include="source\Include\COLOR.H" />
+    <ClInclude Include="source\Include\IMAGE.H" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
